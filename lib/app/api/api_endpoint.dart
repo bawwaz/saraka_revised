@@ -1,3 +1,5 @@
 class ApiEndpoint {
-  static String baseUrl = 'http://localhost:8000/api/saraka-entries';
+  static String baseUrl = 'https://saraka.kelaskita.site/api/saraka-entries';
+  static String MediaBaseUrl =          'https://saraka.kelaskita.site/api/saraka-medias/';
+
 }

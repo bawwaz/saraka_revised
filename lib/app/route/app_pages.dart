@@ -5,13 +5,15 @@ import 'package:saraka_revised/app/pages/features/form_page_detail/form_page_det
 import 'package:saraka_revised/app/pages/features/form_page_detail/form_page_detail_view.dart';
 import 'package:saraka_revised/app/pages/initial_pages/login/login_page_binding.dart';
 import 'package:saraka_revised/app/pages/initial_pages/login/login_page_view.dart';
+import 'package:saraka_revised/app/pages/initial_pages/splash_screen/splash_screen_binding.dart';
+import 'package:saraka_revised/app/pages/initial_pages/splash_screen/splash_screen_view.dart';
 
 part 'routes.dart';
 
 class AppPages {
   AppPages._();
 
-  static const INITIAL = Routes.LOGIN;
+  static const INITIAL = Routes.SPLASHSCREEN;
 
   static final routes = [
     GetPage(
@@ -30,6 +32,12 @@ class AppPages {
       name: Routes.FORMDETAIL,
       page: () => FormPageDetailView(),
       binding: FormPageDetailBinding(),
+      transition: Transition.noTransition,
+    ),
+    GetPage(
+      name: Routes.SPLASHSCREEN,
+      page: () => SplashScreenView(),
+      binding: SplashScreenBinding(),
       transition: Transition.noTransition,
     )
   ];

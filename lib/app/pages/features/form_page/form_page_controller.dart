@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:saraka_revised/app/api/api_endpoint.dart';
+import 'package:saraka_revised/app/route/app_pages.dart';
 
 class FormPageController extends GetxController {
-  var tableData =
-      <Map<String, dynamic>>[].obs; // Store API data as list of maps
+  var tableData = <Map<String, dynamic>>[].obs;
 
   final TextEditingController kodeProdukController = TextEditingController();
   final TextEditingController namaProdukController = TextEditingController();
@@ -15,14 +15,74 @@ class FormPageController extends GetxController {
   final TextEditingController operatorController = TextEditingController();
 
   var selectedShift = '1'.obs;
+  late String username;
 
   @override
   void onInit() {
     super.onInit();
-    getAllData(); // Fetch data from API on initialization
+    username = Get.arguments['username'];
+    operatorController.text = username;
+    getAllData();
   }
 
-  // Fetch data from the API and store it in tableData
+  Future<void> _setCurrentOperator() async {
+    String currentUsername = await _getCurrentUserUsername();
+    operatorController.text = currentUsername;
+  }
+
+  Future<String> _getCurrentUserUsername() async {
+    return Future.value("CurrentUsername");
+  }
+
+  fetchData() async {
+    await getAllData();
+  }
+
+  bool isDuplicate() {
+    for (var row in tableData) {
+      if (row['product_code'] == kodeProdukController.text &&
+          row['batch_product'] == batchController.text &&
+          row['operator'].toLowerCase() ==
+              operatorController.text.toLowerCase()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void addRow() async {
+    if (isDuplicate()) {
+      var existingRow = tableData.firstWhere(
+        (row) =>
+            row['product_code'] == kodeProdukController.text &&
+            row['batch_product'] == batchController.text &&
+            row['operator'].toLowerCase() ==
+                operatorController.text.toLowerCase(),
+        orElse: () => null!,
+      );
+
+      if (existingRow != null) {
+        kodeProdukController.clear();
+        namaProdukController.clear();
+        batchController.clear();
+        shiftController.clear();
+
+        int existingId = existingRow['id'];
+        Get.toNamed(Routes.FORMDETAIL, arguments: existingId);
+
+        Get.snackbar('Duplicate', 'This data already exists');
+      }
+    } else {
+      bool isSuccess = await postData();
+      if (isSuccess) {
+        kodeProdukController.clear();
+        namaProdukController.clear();
+        batchController.clear();
+        shiftController.clear();
+      }
+    }
+  }
+
   Future<void> getAllData() async {
     String url = ApiEndpoint.baseUrl;
 
@@ -31,8 +91,16 @@ class FormPageController extends GetxController {
       if (response.statusCode == 200) {
         List<dynamic> fetchedData = json.decode(response.body);
 
-        tableData.value = List<Map<String, dynamic>>.from(fetchedData);
-        Get.snackbar('Success', 'Data fetched successfully');
+        List<Map<String, dynamic>> sortedData =
+            List<Map<String, dynamic>>.from(fetchedData);
+        sortedData.sort((a, b) {
+          DateTime dateA = DateTime.parse(a['process_date']);
+          DateTime dateB = DateTime.parse(b['process_date']);
+          return dateB.compareTo(dateA);
+        });
+
+        tableData.value = sortedData;
+        Get.snackbar('Success', 'Data fetched and sorted successfully');
       } else {
         Get.snackbar('Error', 'Failed to fetch data');
         print('Failed with status code: ${response.statusCode}');
@@ -44,7 +112,6 @@ class FormPageController extends GetxController {
     }
   }
 
-  // Post data to the API
   Future<bool> postData() async {
     String url = ApiEndpoint.baseUrl;
 
@@ -66,7 +133,7 @@ class FormPageController extends GetxController {
 
       if (response.statusCode == 201) {
         Get.snackbar('Success', 'Data saved successfully');
-        getAllData(); // Refresh the table data after posting
+        getAllData();
         return true;
       } else {
         Get.snackbar('Error', 'Failed to save data');
@@ -81,15 +148,13 @@ class FormPageController extends GetxController {
     }
   }
 
-  // Delete data from API and remove it from the local table
   Future<void> deleteRow(int id) async {
     String url = ApiEndpoint.baseUrl + '/delete/$id';
 
     try {
       final response = await http.delete(Uri.parse(url));
       if (response.statusCode == 200) {
-        tableData
-            .removeWhere((row) => row['id'] == id); // Remove the row locally
+        tableData.removeWhere((row) => row['id'] == id);
         Get.snackbar('Success', 'Row deleted successfully');
       } else {
         Get.snackbar('Error', 'Failed to delete row');
@@ -99,18 +164,6 @@ class FormPageController extends GetxController {
     } catch (e) {
       Get.snackbar('Error', 'Failed to connect to server');
       print('Error: $e');
-    }
-  }
-
-  // Clear form after submitting data
-  void addRow() async {
-    bool isSuccess = await postData();
-    if (isSuccess) {
-      operatorController.clear();
-      kodeProdukController.clear();
-      namaProdukController.clear();
-      batchController.clear();
-      shiftController.clear();
     }
   }
 }
