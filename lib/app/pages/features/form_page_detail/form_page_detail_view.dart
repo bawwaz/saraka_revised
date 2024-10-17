@@ -1,51 +1,34 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'form_page_detail_controller.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'dart:io';
 
-class FormPageDetailView extends StatefulWidget {
-  const FormPageDetailView({super.key});
+class FormPageDetailView extends StatelessWidget {
+  final formDetailController = Get.put(FormPageDetailController());
 
-  @override
-  _FormPageDetailViewState createState() => _FormPageDetailViewState();
-}
-
-class _FormPageDetailViewState extends State<FormPageDetailView> {
-  final List<Map<String, dynamic>> _tableData = [];
-  final ImagePicker _picker = ImagePicker();
-  File? _pickedImage;
-
-  Future<Map<String, dynamic>> fetchData(int id) async {
-    final String url = 'http://localhost:8000/api/saraka-entries/get/$id';
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        throw Exception('Failed to load details');
-      }
-    } catch (e) {
-      throw Exception('Failed to connect to the server');
+  String toRomanNumeral(int shift) {
+    switch (shift) {
+      case 1:
+        return 'I';
+      case 2:
+        return 'II';
+      case 3:
+        return 'III';
+      default:
+        return '';
     }
   }
 
-  Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
-    if (image != null) {
-      setState(() {
-        _pickedImage = File(image.path);
-        _tableData.add({
-          'image': _pickedImage,
-          'qr': '',
-        });
-      });
-    }
+  String formatDate(String dateStr) {
+    final DateFormat inputFormat = DateFormat("d MMMM yyyy");
+    final DateTime dateTime = inputFormat.parse(dateStr);
+    final DateFormat outputFormat = DateFormat('yMd');
+    return outputFormat.format(dateTime);
   }
 
-  Future<void> _scanQR(int index) async {
+  Future<void> _scanQR(BuildContext context) async {
     String qrResult = '';
     await showDialog(
       context: context,
@@ -58,29 +41,39 @@ class _FormPageDetailViewState extends State<FormPageDetailView> {
             onDetect: (BarcodeCapture barcodeCapture) {
               if (barcodeCapture.barcodes.isNotEmpty) {
                 qrResult = barcodeCapture.barcodes.first.rawValue ?? '';
-                Navigator.of(context).pop();
+                formDetailController.scannedQR.value = qrResult;
+                Navigator.pop(context);
               }
             },
           ),
         ),
       ),
     );
-
-    setState(() {
-      _tableData[index]['qr'] = qrResult;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final int id = Get.arguments;
+    final int entryId = Get.arguments;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detail'),
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+            onPressed: () {
+              Get.back();
+            },
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.white,
+            )),
+        title: const Text(
+          'Detail',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color.fromARGB(255, 63, 113, 65),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
-        future: fetchData(id),
+        future: formDetailController.fetchData(entryId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -88,98 +81,450 @@ class _FormPageDetailViewState extends State<FormPageDetailView> {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
             var data = snapshot.data!;
-            final TextEditingController operatorController =
-                TextEditingController(text: data['operator']);
-            final TextEditingController kodeProdukController =
-                TextEditingController(text: data['product_code']);
-            final TextEditingController namaProdukController =
-                TextEditingController(text: data['product_name']);
-            final TextEditingController batchController =
-                TextEditingController(text: data['batch_product']);
-            final TextEditingController shiftController =
-                TextEditingController(text: data['shift']);
-
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.only(
+                  left: 16.0, right: 16, bottom: 16, top: 30),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Form fields (read-only)
-                  _buildTextField('Operator', operatorController),
-                  _buildTextField('Kode Produk', kodeProdukController),
-                  _buildTextField('Nama Produk', namaProdukController),
-                  _buildTextField('Batch', batchController),
-                  _buildTextField('Shift', shiftController),
-                  const SizedBox(height: 20),
+                  Container(
+                    padding: EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: const Color.fromARGB(255, 63, 107, 65)),
+                    child: Table(
+                      columnWidths: const {
+                        0: IntrinsicColumnWidth(),
+                        2: FlexColumnWidth(),
+                      },
+                      children: [
+                        TableRow(
+                          children: [
+                            const Text(
+                              'ID',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10.0),
+                              child: Text(
+                                ' : ${data['id'].toString()}',
+                                style: const TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                        TableRow(
+                          children: [
+                            const Text(
+                              'Shift',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.white),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10.0),
+                              child: Text(
+                                ' : ${data['shift'].toString()}',
+                                style: const TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                        TableRow(
+                          children: [
+                            const Text(
+                              'Product Name',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.white),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10.0),
+                              child: Text(
+                                ' : ${data['product_name'].toString()}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        TableRow(
+                          children: [
+                            const Text(
+                              'Product Code',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.white),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10.0),
+                              child: Text(
+                                ' : ${data['product_code'].toString()}',
+                                style: const TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                        TableRow(
+                          children: [
+                            const Text(
+                              'Batch Product',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.white),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Text(
+                                ' : ${data['batch_product'].toString()}',
+                                style: const TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                        TableRow(
+                          children: [
+                            const Text(
+                              'Process Date',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.white),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10.0),
+                              child: Text(
+                                ' : ${data['process_date'].toString()}',
+                                style: const TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                        TableRow(
+                          children: [
+                            const Text(
+                              'Operator',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.white),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10.0),
+                              child: Text(
+                                ' : ${data['operator'].toString()}',
+                                style: const TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 30, thickness: 1),
+                  GestureDetector(
+                    onTap: () => formDetailController.pickImage(),
+                    child: AbsorbPointer(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          labelText: 'Capture Image',
+                          border: const OutlineInputBorder(),
+                          suffixIcon: formDetailController.pickedImage != null
+                              ? const Icon(Icons.check)
+                              : const Icon(Icons.camera_alt),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  GestureDetector(
+                    onTap: () => _scanQR(context),
+                    child: AbsorbPointer(
+                      child: Obx(() => TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Scan QR Code',
+                              border: const OutlineInputBorder(),
+                              suffixIcon: const Icon(Icons.qr_code_scanner),
+                            ),
+                            controller: TextEditingController(
+                              text: formDetailController.scannedQR.value,
+                            ),
+                          )),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
                   ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _tableData.add({
-                          'image': null,
-                          'qr': '',
-                        });
-                      });
+                    onPressed: () async {
+                      if (formDetailController.pickedImage != null &&
+                          formDetailController.scannedQR.isNotEmpty) {
+                        var qr = formDetailController.scannedQR.value;
+
+                        // Get the process date, shift, and batch product from the existing data
+                        String processDate = data['process_date'].toString();
+                        int shift = int.parse(data['shift']
+                            .toString()); // Assuming shift is an integer
+                        String batchProduct = data['batch_product'].toString();
+
+                        // Format the date (e.g., "16 October 2024" to "16102024")
+                        DateTime parsedDate =
+                            DateFormat('d MMMM yyyy').parse(processDate);
+                        String formattedDate =
+                            DateFormat('ddMMyyyy').format(parsedDate);
+
+                        // Convert the shift to Roman numeral
+                        String romanShift = toRomanNumeral(shift);
+
+                        int mediaCount =
+                            formDetailController.tableData.length + 1;
+
+                        // Generate the custom file name with the Roman numeral for shift
+                        String customFileName =
+                            '$formattedDate-$romanShift-$batchProduct-$mediaCount.jpg';
+
+                        print('Generated custom image title: $customFileName');
+
+                        await formDetailController.uploadMedia(
+                          entryId,
+                          formDetailController.pickedImage!, // Image
+                          qr, // QR Code
+                          customFileName,
+                        );
+
+                        await formDetailController.fetchData(entryId);
+
+                        Get.snackbar('Success',
+                            'Data added successfully and page refreshed!');
+                      } else {
+                        Get.snackbar('Error',
+                            'Please select an image and scan a QR code before uploading.');
+                      }
                     },
                     child: const Text('Tambah'),
                   ),
+                  const SizedBox(height: 20),
+                  Obx(() {
+                    if (formDetailController.tableData.isEmpty) {
+                      return const Text('No media available');
+                    } else {
+                      var sortedTableData =
+                          formDetailController.tableData.reversed.toList();
 
-                  _buildTable(),
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: DataTable(
+                          columns: const [
+                            DataColumn(label: Text('No')),
+                            DataColumn(label: Text('Image')),
+                            DataColumn(label: Text('Image Title')),
+                            DataColumn(label: Text('QR Code')),
+                            DataColumn(label: Text('Actions')),
+                          ],
+                          rows: List.generate(
+                            sortedTableData.length,
+                            (index) {
+                              var row = sortedTableData[index];
+                              return DataRow(
+                                cells: [
+                                  DataCell(Text('${index + 1}')),
+                                  DataCell(
+                                    row['image'] != null
+                                        ? GestureDetector(
+                                            onTap: () {
+                                              String imagePath;
+                                              if (row['image'] is String) {
+                                                imagePath = row['image'];
+                                              } else if (row['image'] is File) {
+                                                imagePath = row['image'].path;
+                                              } else {
+                                                imagePath = '';
+                                              }
+
+                                              if (imagePath.isNotEmpty) {
+                                                String baseUrl =
+                                                    'https://saraka.kelaskita.site/storage/';
+                                                String imageUrl =
+                                                    baseUrl + imagePath;
+
+                                                Get.dialog(
+                                                  Dialog(
+                                                    child: Column(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Image.network(
+                                                            imageUrl,
+                                                            fit: BoxFit.contain,
+                                                            errorBuilder:
+                                                                (context, error,
+                                                                    stackTrace) {
+                                                              return Center(
+                                                                child:
+                                                                    const Text(
+                                                                  'Failed to load image',
+                                                                  style: TextStyle(
+                                                                      color: Colors
+                                                                          .red),
+                                                                ),
+                                                              );
+                                                            },
+                                                          ),
+                                                        ),
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(8.0),
+                                                          child: Column(
+                                                            children: [
+                                                              Text(
+                                                                'Image Title: ${row['image_title'] ?? 'Unknown'}', // Display image_title
+                                                                style: const TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold),
+                                                              ),
+                                                              Text(
+                                                                'Size: ${(row['size'] != null ? (row['size'] / 1024).toStringAsFixed(2) : 'Unknown')} KB',
+                                                                style: const TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                );
+                                              } else {
+                                                Get.snackbar('Error',
+                                                    'Invalid image URL or path');
+                                              }
+                                            },
+                                            child: Icon(Icons.remove_red_eye))
+                                        : const Text('No Image'),
+                                  ),
+                                  DataCell(
+                                    Text(
+                                      row['image_title'] != null
+                                          ? (row['image_title']!.length > 21
+                                              ? '${row['image_title']!.substring(0, 21)}...'
+                                              : row['image_title'])
+                                          : 'No title',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      softWrap: false,
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Text(
+                                      row['qr'] != null
+                                          ? (row['qr']!.length > 21
+                                              ? '${row['qr']!.substring(0, 21)}...'
+                                              : row['qr'])
+                                          : 'No QR',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      softWrap: false,
+                                    ),
+                                  ),
+                                  DataCell(IconButton(
+                                    icon: const Icon(Icons.delete),
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: const Text('Delete item?'),
+                                            actions: [
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceEvenly,
+                                                children: [
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                    child: const Text('No'),
+                                                  ),
+                                                  Container(
+                                                    height: 60,
+                                                    width: 100,
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          const Color.fromARGB(
+                                                              255, 137, 53, 53),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20),
+                                                    ),
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        vertical: 10,
+                                                        horizontal: 20),
+                                                    child: Center(
+                                                      child: TextButton(
+                                                        onPressed: () {
+                                                          formDetailController
+                                                              .deleteMedia(
+                                                                  row['id'],
+                                                                  entryId);
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                        },
+                                                        child: const Text(
+                                                          'Yes',
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.white),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    },
+                                  )),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    }
+                  }),
                 ],
               ),
             );
           } else {
-            return Center(child: Text('No data available'));
+            return Center(child: const Text('No data found.'));
           }
         },
       ),
-    );
-  }
-
-  // Build each row for the table
-  Widget _buildTable() {
-    return Column(
-      children: _tableData.map((row) {
-        int index = _tableData.indexOf(row);
-        return Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.camera_alt),
-              onPressed: _pickImage,
-            ),
-            row['image'] != null
-                ? Image.file(
-                    row['image'],
-                    width: 50,
-                    height: 50,
-                  )
-                : const SizedBox(width: 50, height: 50),
-
-            // QR scan button
-            IconButton(
-              icon: const Icon(Icons.qr_code),
-              onPressed: () => _scanQR(index),
-            ),
-            Text(row['qr'].toString()),
-          ],
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildTextField(String label, TextEditingController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          readOnly: true,
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 20),
-      ],
     );
   }
 }

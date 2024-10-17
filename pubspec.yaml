@@ -50,7 +50,11 @@ dev_dependencies:
   mobile_scanner:
   intl: 
   http:
-  image_picker: 
+  image_picker:
+  image:
+  url_launcher: ^6.3.1
+  shared_preferences:
+  get_storage:
 
 
 
