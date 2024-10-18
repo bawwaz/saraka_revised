@@ -6,7 +6,6 @@ import 'dart:convert';
 class ProfilePageController extends GetxController {
   Future<void> logout() async {
     try {
-      // Assuming you have a token saved for authentication
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
 
@@ -22,12 +21,8 @@ class ProfilePageController extends GetxController {
         if (response.statusCode == 200) {
           var jsonResponse = json.decode(response.body);
           print("Logout successful: $jsonResponse");
-
-          // Clear the token and any other saved data from SharedPreferences
-          await prefs.clear(); // This will remove all stored data
-
-          // Navigate to the login page
-          Get.offAllNamed('/login'); // Replace with your login route
+          await prefs.clear();
+          Get.offAllNamed('/login'); 
         } else {
           print("Failed to logout: ${response.statusCode}");
         }

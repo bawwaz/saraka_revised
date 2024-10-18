@@ -6,8 +6,8 @@ import 'package:saraka_revised/app/route/app_pages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPageController extends GetxController {
-  var isLoading = false.obs; // Observable for loading state
-  var isPasswordHidden = true.obs; // Observable for password visibility
+  var isLoading = false.obs;
+  var isPasswordHidden = true.obs; 
 
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -15,15 +15,13 @@ class LoginPageController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    autoLogin(); // Auto login if token exists
+    autoLogin(); 
   }
 
-  // Toggle password visibility
   void togglePasswordVisibility() {
     isPasswordHidden.value = !isPasswordHidden.value;
   }
 
-  // Method to handle login
   Future<void> login() async {
     String url = 'https://saraka.kelaskita.site/api/saraka-auth/login';
     String usernameInput = usernameController.text;
@@ -53,8 +51,7 @@ class LoginPageController extends GetxController {
         String token = data['token'];
         int userId = data['user']['id'];
         String username = data['user']['username'];
-
-        // Save token and user data using SharedPreferences
+        
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
         await prefs.setInt('userId', userId);
@@ -63,7 +60,7 @@ class LoginPageController extends GetxController {
         Get.snackbar('Success', 'Login successful');
         Get.offAllNamed(Routes.FORM, arguments: {
           'username': username
-        }); // Navigate to the main form screen
+        }); 
       } else {
         Get.snackbar('Error', 'Invalid username or password');
       }

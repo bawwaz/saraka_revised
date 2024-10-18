@@ -104,9 +104,9 @@ class FormPageView extends StatelessWidget {
                           DataColumn(
                             label: Container(
                               decoration: BoxDecoration(
-                                color: Color(0xFFF5DEB3), // Row background
+                                color: Color(0xFFF5DEB3), 
                                 border:
-                                    Border.all(color: Colors.black), // Border
+                                    Border.all(color: Colors.black),
                               ),
                               padding: EdgeInsets.all(8.0),
                               child: Text('ID'),
