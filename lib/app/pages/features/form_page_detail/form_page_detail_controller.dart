@@ -35,7 +35,6 @@ class FormPageDetailController extends GetxController {
         // Print entire data response for debugging
         print('Fetched Data: $data');
 
-        // Map the 'media' data and print size and image_title for each media item
         tableData.value = data['media'].map<Map<String, dynamic>>((media) {
           print('Image Title: ${media['image_title'] ?? 'No Title'}');
           print('Image Size: ${media['size'] ?? 'Unknown Size'}');
@@ -43,10 +42,9 @@ class FormPageDetailController extends GetxController {
           return {
             'id': media['id'],
             'image': media['image'],
-            'image_title':
-                media['image_title'], 
+            'image_title': media['image_title'],
             'qr': media['qrcode'],
-            'size': media['size'], 
+            'size': media['size'],
           };
         }).toList();
         return data;
@@ -60,12 +58,12 @@ class FormPageDetailController extends GetxController {
 
   Future<void> uploadMedia(int sarakaEntryId, File image, String qrCode,
       String customFileName) async {
-    final String url =
-        ApiEndpoint.MediaBaseUrl;
+    final String url = 'https://saraka.kelaskita.site/api/saraka-medias/post';
+
     final String apiToken = 'your_api_token';
 
     try {
-      var request = http.MultipartRequest('POST', Uri.parse('$url/post'));
+      var request = http.MultipartRequest('POST', Uri.parse(url));
       request.headers['Authorization'] = 'Bearer $apiToken';
       request.headers['Accept'] = 'application/json';
 
@@ -127,12 +125,14 @@ class FormPageDetailController extends GetxController {
   }
 
   Future<void> deleteMedia(int mediaId, int entryId) async {
-    final String url = ApiEndpoint.MediaBaseUrl;
+    // final String url = ApiEndpoint.MediaBaseUrl;
+    final String url =
+        'https://saraka.kelaskita.site/api/saraka-medias/delete/$mediaId';
     final String apiToken = 'your_api_token';
 
     try {
       final response = await http.delete(
-        Uri.parse('$url/delete/$mediaId'),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $apiToken',
           'Accept': 'application/json'

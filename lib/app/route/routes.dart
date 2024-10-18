@@ -5,4 +5,5 @@ class Routes {
   static const String FORM = '/form';
   static const String FORMDETAIL = '/formdetail';
   static const String SPLASHSCREEN = '/splashscreen';
+  static const String PROFILE = '/profile';
 }

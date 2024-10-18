@@ -21,9 +21,9 @@ class SplashScreenController extends GetxController {
         print("Navigating to FormPageView. Username: $username");
       }
       Get.offAllNamed(Routes.FORM,
-          arguments: {'username': username}); // Navigate to FormPageView
+          arguments: {'username': username}); 
     } else {
-      Get.offAllNamed(Routes.LOGIN); // Navigate to Login page
+      Get.offAllNamed(Routes.LOGIN); 
     }
   }
 }
