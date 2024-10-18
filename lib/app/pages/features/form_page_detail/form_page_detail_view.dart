@@ -278,25 +278,21 @@ class FormPageDetailView extends StatelessWidget {
                           formDetailController.scannedQR.isNotEmpty) {
                         var qr = formDetailController.scannedQR.value;
 
-                        // Get the process date, shift, and batch product from the existing data
                         String processDate = data['process_date'].toString();
                         int shift = int.parse(data['shift']
-                            .toString()); // Assuming shift is an integer
+                            .toString()); 
                         String batchProduct = data['batch_product'].toString();
 
-                        // Format the date (e.g., "16 October 2024" to "16102024")
                         DateTime parsedDate =
                             DateFormat('d MMMM yyyy').parse(processDate);
                         String formattedDate =
                             DateFormat('ddMMyyyy').format(parsedDate);
 
-                        // Convert the shift to Roman numeral
                         String romanShift = toRomanNumeral(shift);
 
                         int mediaCount =
                             formDetailController.tableData.length + 1;
 
-                        // Generate the custom file name with the Roman numeral for shift
                         String customFileName =
                             '$formattedDate-$romanShift-$batchProduct-$mediaCount.jpg';
 
@@ -304,8 +300,8 @@ class FormPageDetailView extends StatelessWidget {
 
                         await formDetailController.uploadMedia(
                           entryId,
-                          formDetailController.pickedImage!, // Image
-                          qr, // QR Code
+                          formDetailController.pickedImage!, 
+                          qr, 
                           customFileName,
                         );
 

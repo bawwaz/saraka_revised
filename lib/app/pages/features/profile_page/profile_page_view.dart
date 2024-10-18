@@ -7,34 +7,72 @@ class ProfilePageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize the controller using Get.put()
     final ProfilePageController controller = Get.put(ProfilePageController());
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Me'),
+        title: Text('Logout'),
       ),
-      body: Container(
-        margin: EdgeInsets.all(20),
-        child: Column(
-          children: [
-            TextField(
-              readOnly: true,
-            )
-          ],
-        ),
-      ),
-      bottomNavigationBar: Container(
-        margin: EdgeInsets.all(20),
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 10.0),
-          child: ElevatedButton(
-            onPressed: () {
-              // Call the logout method on button press
-              controller.logout();
-            },
-            child: Text("Logout"),
-          ),
+      body: Center(
+        child: InkWell(
+          onTap: () {
+            showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text("Logout dari sesi ini?"),
+                    actions: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              controller.logout();
+                            },
+                            child: Text(
+                              'Ya',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  );
+                });
+          },
+          child: Container(
+              margin: EdgeInsets.all(20),
+              child: Container(
+                width: double.infinity,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 177, 53, 44),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: Text(
+                    "Logout",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: 18),
+                  ),
+                ),
+              )
+              
+              ),
         ),
       ),
     );
