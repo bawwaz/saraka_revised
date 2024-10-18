@@ -20,6 +20,20 @@ class FormPageView extends StatelessWidget {
           'Saraka Form',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 10.0),
+            child: IconButton(
+              onPressed: () {
+                Get.toNamed(Routes.PROFILE);
+              },
+              icon: Icon(
+                Icons.person,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _refreshPage,

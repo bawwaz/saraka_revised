@@ -366,12 +366,21 @@ class FormPageDetailView extends StatelessWidget {
 
                                                 Get.dialog(
                                                   Dialog(
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              16),
+                                                    ),
                                                     child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
                                                       children: [
-                                                        Expanded(
+                                                        Container(
+                                                          height: 200,
                                                           child: Image.network(
                                                             imageUrl,
-                                                            fit: BoxFit.contain,
+                                                            fit: BoxFit.fill,
                                                             errorBuilder:
                                                                 (context, error,
                                                                     stackTrace) {
@@ -394,7 +403,7 @@ class FormPageDetailView extends StatelessWidget {
                                                           child: Column(
                                                             children: [
                                                               Text(
-                                                                'Image Title: ${row['image_title'] ?? 'Unknown'}', // Display image_title
+                                                                'Image Title: ${row['image_title'] ?? 'Unknown'}',
                                                                 style: const TextStyle(
                                                                     fontWeight:
                                                                         FontWeight
@@ -425,8 +434,8 @@ class FormPageDetailView extends StatelessWidget {
                                   DataCell(
                                     Text(
                                       row['image_title'] != null
-                                          ? (row['image_title']!.length > 21
-                                              ? '${row['image_title']!.substring(0, 21)}...'
+                                          ? (row['image_title']!.length > 25
+                                              ? '${row['image_title']!.substring(0, 25)}...'
                                               : row['image_title'])
                                           : 'No title',
                                       maxLines: 1,

@@ -61,7 +61,9 @@ class LoginPageController extends GetxController {
         await prefs.setString('username', username);
 
         Get.snackbar('Success', 'Login successful');
-        Get.offAllNamed(Routes.FORM); // Navigate to the main form screen
+        Get.offAllNamed(Routes.FORM, arguments: {
+          'username': username
+        }); // Navigate to the main form screen
       } else {
         Get.snackbar('Error', 'Invalid username or password');
       }
@@ -72,21 +74,20 @@ class LoginPageController extends GetxController {
     }
   }
 
-  // Auto login if token exists
   Future<void> autoLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? savedToken = prefs.getString('token');
 
     if (savedToken != null && savedToken.isNotEmpty) {
-      // Token exists, navigate to the main form page
-      Get.offAllNamed(Routes.FORM);
+      Get.offAllNamed(
+        Routes.FORM,
+      );
     }
   }
 
-  // Logout method to clear token and navigate back to the login page
   Future<void> logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // Clear stored token and user data
-    Get.offAllNamed(Routes.LOGIN); // Navigate back to login screen
+    await prefs.clear();
+    Get.offAllNamed(Routes.LOGIN);
   }
 }
