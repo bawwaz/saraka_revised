@@ -150,4 +150,17 @@ class FormPageDetailController extends GetxController {
       Get.snackbar('Error', 'Failed to delete media');
     }
   }
+
+  String RomanNumeral(int shift) {
+    switch (shift) {
+      case 1:
+        return 'I';
+      case 2:
+        return 'II';
+      case 3:
+        return 'III';
+      default:
+        return '';
+    }
+  }
 }
