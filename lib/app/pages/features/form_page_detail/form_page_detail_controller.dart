@@ -32,7 +32,6 @@ class FormPageDetailController extends GetxController {
         data['created_at'] = formattedCreatedAt;
         data['updated_at'] = formattedUpdatedAt;
 
-        // Print entire data response for debugging
         print('Fetched Data: $data');
 
         tableData.value = data['media'].map<Map<String, dynamic>>((media) {
@@ -102,7 +101,7 @@ class FormPageDetailController extends GetxController {
     }
   }
 
-  Future<void> pickImage() async {
+  Future<void> pickImage(int id) async {
     final XFile? image = await picker.pickImage(source: ImageSource.camera);
 
     if (image != null) {
@@ -113,6 +112,38 @@ class FormPageDetailController extends GetxController {
 
       if (decodedImage != null) {
         img.Image resizedImage = img.copyResize(decodedImage, width: 1024);
+        var font = img.arial48;
+
+        Map<String, dynamic> data = await fetchData(id);
+
+        String batchProduct = data['batch_product'] ?? 'unknown';
+        String operatorText = data['operator'] ?? 'Unknown';
+        String shiftText = data['shift'] ?? 'Unknown';
+        String productNameText = data['product_name'] ?? 'Unknown';
+
+        String dateTimeString =
+            DateFormat('dd MMM yyyy HH:mm:ss').format(DateTime.now());
+
+        int textX = 10;
+        int operatorTextY = 100;
+        int shiftTextY = 150;
+        int productNameTextY = 200;
+
+        img.drawString(resizedImage, 'Saraka,$dateTimeString',
+            font: font, x: 10, y: resizedImage.height - 50);
+        img.drawString(resizedImage, 'Operator: $operatorText',
+            font: font, x: textX, y: operatorTextY);
+        img.drawString(resizedImage, 'Shift: $shiftText',
+            font: font, x: textX, y: shiftTextY);
+        img.drawString(resizedImage, 'Product: ($batchProduct)',
+            font: font, x: textX, y: productNameTextY);
+
+        double avgCharWidth = font.size * 0.8;
+        int productNameWidth = (productNameText.length * avgCharWidth).toInt();
+
+        int batchX = textX + productNameWidth + 240;
+        img.drawString(resizedImage, productNameText,
+            font: font, x: batchX, y: productNameTextY);
 
         final compressedImageBytes = img.encodeJpg(resizedImage, quality: 80);
 
@@ -125,7 +156,6 @@ class FormPageDetailController extends GetxController {
   }
 
   Future<void> deleteMedia(int mediaId, int entryId) async {
-    // final String url = ApiEndpoint.MediaBaseUrl;
     final String url =
         'https://saraka.kelaskita.site/api/saraka-medias/delete/$mediaId';
     final String apiToken = 'your_api_token';
