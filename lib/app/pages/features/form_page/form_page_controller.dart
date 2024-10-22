@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:isolate'; // Import for using isolates
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -7,6 +8,8 @@ import 'package:saraka_revised/app/route/app_pages.dart';
 
 class FormPageController extends GetxController {
   var tableData = <Map<String, dynamic>>[].obs;
+  var isLoading = false.obs;
+  var isTableScrolling = false.obs; // Track if the table is scrolling
 
   final TextEditingController kodeProdukController = TextEditingController();
   final TextEditingController namaProdukController = TextEditingController();
@@ -17,12 +20,27 @@ class FormPageController extends GetxController {
   var selectedShift = '1'.obs;
   late String username;
 
+  // Scroll controller to listen to table scrolling
+  ScrollController tableScrollController = ScrollController();
+
   @override
   void onInit() {
     super.onInit();
     username = Get.arguments['username'];
     operatorController.text = username;
     getAllData();
+
+    // Listen to scroll events
+    tableScrollController.addListener(() {
+      isTableScrolling.value = tableScrollController.position.pixels > 0;
+    });
+  }
+
+  @override
+  void onClose() {
+    tableScrollController
+        .dispose(); // Clean up the controller when the widget is removed
+    super.onClose();
   }
 
   Future<void> _setCurrentOperator() async {
@@ -85,21 +103,18 @@ class FormPageController extends GetxController {
 
   Future<void> getAllData() async {
     String url = ApiEndpoint.baseUrl;
+    isLoading.value = true; // Start loading
 
     try {
       final response = await http.get(Uri.parse('$url/get/'));
       if (response.statusCode == 200) {
         List<dynamic> fetchedData = json.decode(response.body);
 
+        // Process data in an isolate to avoid freezing the UI
         List<Map<String, dynamic>> sortedData =
-            List<Map<String, dynamic>>.from(fetchedData);
-        sortedData.sort((a, b) {
-          DateTime dateA = DateTime.parse(a['process_date']);
-          DateTime dateB = DateTime.parse(b['process_date']);
-          return dateB.compareTo(dateA);
-        });
-
+            await _sortDataInIsolate(fetchedData);
         tableData.value = sortedData;
+
         Get.snackbar('Success', 'Data fetched and sorted successfully');
       } else {
         Get.snackbar('Error', 'Failed to fetch data');
@@ -109,11 +124,29 @@ class FormPageController extends GetxController {
     } catch (e) {
       Get.snackbar('Error', 'Failed to connect to server');
       print('Error: $e');
+    } finally {
+      isLoading.value = false; // Stop loading
     }
+  }
+
+  Future<List<Map<String, dynamic>>> _sortDataInIsolate(
+      List<dynamic> fetchedData) async {
+    final response = await Isolate.run(() {
+      List<Map<String, dynamic>> sortedData =
+          List<Map<String, dynamic>>.from(fetchedData);
+      sortedData.sort((a, b) {
+        DateTime dateA = DateTime.parse(a['process_date']);
+        DateTime dateB = DateTime.parse(b['process_date']);
+        return dateB.compareTo(dateA);
+      });
+      return sortedData;
+    });
+    return response;
   }
 
   Future<bool> postData() async {
     String url = ApiEndpoint.baseUrl;
+    isLoading.value = true;
 
     Map<String, dynamic> postData = {
       "shift": selectedShift.value,
@@ -145,11 +178,14 @@ class FormPageController extends GetxController {
       Get.snackbar('Error', 'Failed to connect to server');
       print('Error: $e');
       return false;
+    } finally {
+      isLoading.value = false;
     }
   }
 
   Future<void> deleteRow(int id) async {
     String url = ApiEndpoint.baseUrl + '/delete/$id';
+    isLoading.value = true;
 
     try {
       final response = await http.delete(Uri.parse(url));
@@ -164,6 +200,8 @@ class FormPageController extends GetxController {
     } catch (e) {
       Get.snackbar('Error', 'Failed to connect to server');
       print('Error: $e');
+    } finally {
+      isLoading.value = false;
     }
   }
 }
