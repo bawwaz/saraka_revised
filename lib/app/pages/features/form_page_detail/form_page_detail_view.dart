@@ -34,143 +34,153 @@ class FormPageDetailView extends StatelessWidget {
         ),
         backgroundColor: const Color.fromARGB(255, 63, 113, 65),
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: formDetailController.fetchData(entryId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (snapshot.hasData) {
-            var data = snapshot.data!;
-            return Column(
-              children: [
-                DataContainer(data: data),
-                const Divider(height: 30, thickness: 1),
-                GestureDetector(
-                  onTap: () => formDetailController.pickImage(entryId),
-                  child: AbsorbPointer(child: CameraTextfield()),
-                ),
-                SizedBox(height: 10),
-                GestureDetector(
-                  onTap: () => ScanQRDialog(context),
-                  child: AbsorbPointer(child: QrTextfield()),
-                ),
-                SizedBox(height: 10),
-                TambahButton(data: data),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: Obx(() {
-                    if (formDetailController.tableData.isEmpty) {
-                      return Center(child: Text('No media available'));
-                    }
+      body: Container(
+        margin: EdgeInsets.all(20),
+        child: FutureBuilder<Map<String, dynamic>>(
+          future: formDetailController.fetchData(entryId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (snapshot.hasData) {
+              var data = snapshot.data!;
+              return Column(
+                children: [
+                  DataContainer(data: data),
+                  const Divider(height: 30, thickness: 1),
+                  GestureDetector(
+                    onTap: () => formDetailController.pickImage(entryId),
+                    child: AbsorbPointer(child: CameraTextfield()),
+                  ),
+                  SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: () => ScanQRDialog(context),
+                    child: AbsorbPointer(child: QrTextfield()),
+                  ),
+                  SizedBox(height: 10),
+                  TambahButton(data: data),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: Obx(() {
+                      if (formDetailController.tableData.isEmpty) {
+                        return Center(child: Text('No media available'));
+                      }
 
-                    return Column(
-                      children: [
-                        // Horizontal scrollable header
-                        SingleChildScrollView(
-                          controller: formDetailController.horizontalScrollControllerHeader,
-                          scrollDirection: Axis.horizontal,
-                          child: Table(
-                            columnWidths: const {
-                              0: FixedColumnWidth(50.0),
-                              1: FixedColumnWidth(100.0),
-                              2: FixedColumnWidth(150.0),
-                              3: FixedColumnWidth(120.0),
-                              4: FixedColumnWidth(130.0),
-                              5: FixedColumnWidth(120.0),
-                            },
-                            border: TableBorder(
-                              horizontalInside: BorderSide(
-                                width: 1,
-                                color: Colors.black,
-                                style: BorderStyle.solid,
-                              ),
-                              verticalInside: BorderSide(
-                                width: 1,
-                                color: Colors.black,
-                                style: BorderStyle.solid,
-                              ),
-                            ),
-                            children: [
-                              // Header row
-                              TableRow(
-                                decoration: BoxDecoration(
-                                  color: Color.fromARGB(255, 215, 238, 151),
+                      return Column(
+                        children: [
+                          // Horizontal scrollable header
+                          SingleChildScrollView(
+                            controller: formDetailController
+                                .horizontalScrollControllerHeader,
+                            scrollDirection: Axis.horizontal,
+                            child: Table(
+                              columnWidths: const {
+                                0: FixedColumnWidth(50.0),
+                                1: FixedColumnWidth(100.0),
+                                2: FixedColumnWidth(150.0),
+                                3: FixedColumnWidth(120.0),
+                                4: FixedColumnWidth(130.0),
+                                5: FixedColumnWidth(120.0),
+                              },
+                              border: TableBorder(
+                                horizontalInside: BorderSide(
+                                  width: 1,
+                                  color: Colors.black,
+                                  style: BorderStyle.solid,
                                 ),
-                                children: [
-                                  _buildHeaderCell('No'),
-                                  _buildHeaderCell('Image'),
-                                  _buildHeaderCell('Image Title'),
-                                  _buildHeaderCell('QR Code'),
-                                  _buildHeaderCell('Actions'),
-                                ],
+                                verticalInside: BorderSide(
+                                  width: 1,
+                                  color: Colors.black,
+                                  style: BorderStyle.solid,
+                                ),
                               ),
-                            ],
+                              children: [
+                                // Header row
+                                TableRow(
+                                  decoration: BoxDecoration(
+                                    color: Color.fromARGB(255, 215, 238, 151),
+                                  ),
+                                  children: [
+                                    _buildHeaderCell('No'),
+                                    _buildHeaderCell('Image'),
+                                    _buildHeaderCell('Image Title'),
+                                    _buildHeaderCell('QR Code'),
+                                    _buildHeaderCell('Actions'),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        // Scrollable body
-                        Expanded(
-                          child: SingleChildScrollView(
-                            controller: formDetailController.verticalScrollControllerBody,
+                          // Scrollable body
+                          Expanded(
                             child: SingleChildScrollView(
-                              controller: formDetailController.horizontalScrollControllerBody,
-                              scrollDirection: Axis.horizontal,
-                              child: Table(
-                                columnWidths: const {
-                                  0: FixedColumnWidth(50.0),
-                                  1: FixedColumnWidth(100.0),
-                                  2: FixedColumnWidth(150.0),
-                                  3: FixedColumnWidth(120.0),
-                                  4: FixedColumnWidth(130.0),
-                                  5: FixedColumnWidth(120.0),
-                                },
-                                border: TableBorder(
-                                  horizontalInside: BorderSide(
-                                    width: 1,
-                                    color: Colors.black,
-                                    style: BorderStyle.solid,
+                              controller: formDetailController
+                                  .verticalScrollControllerBody,
+                              child: SingleChildScrollView(
+                                controller: formDetailController
+                                    .horizontalScrollControllerBody,
+                                scrollDirection: Axis.horizontal,
+                                child: Table(
+                                  columnWidths: const {
+                                    0: FixedColumnWidth(50.0),
+                                    1: FixedColumnWidth(100.0),
+                                    2: FixedColumnWidth(150.0),
+                                    3: FixedColumnWidth(120.0),
+                                    4: FixedColumnWidth(130.0),
+                                    5: FixedColumnWidth(120.0),
+                                  },
+                                  border: TableBorder(
+                                    horizontalInside: BorderSide(
+                                      width: 1,
+                                      color: Colors.black,
+                                      style: BorderStyle.solid,
+                                    ),
+                                    verticalInside: BorderSide(
+                                      width: 1,
+                                      color: Colors.black,
+                                      style: BorderStyle.solid,
+                                    ),
                                   ),
-                                  verticalInside: BorderSide(
-                                    width: 1,
-                                    color: Colors.black,
-                                    style: BorderStyle.solid,
-                                  ),
-                                ),
-                                children: [
-                                  // Data rows
-                                  ...formDetailController.tableData
-                                      .map(
-                                        (row) => TableRow(
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey[200],
+                                  children: [
+                                    // Data rows
+                                    ...formDetailController.tableData
+                                        .map(
+                                          (row) => TableRow(
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[200],
+                                            ),
+                                            children: [
+                                              _buildDataCell(
+                                                  '${formDetailController.tableData.indexOf(row) + 1}'),
+                                              _buildImageCell(context, row),
+                                              _buildDataCell(
+                                                  row['image_title'] ??
+                                                      'No title'),
+                                              _buildDataCell(
+                                                  row['qr'] ?? 'No QR'),
+                                              _buildActionCell(
+                                                  context, row, entryId),
+                                            ],
                                           ),
-                                          children: [
-                                            _buildDataCell(
-                                                '${formDetailController.tableData.indexOf(row) + 1}'),
-                                            _buildImageCell(context, row),
-                                            _buildDataCell(row['image_title'] ?? 'No title'),
-                                            _buildDataCell(row['qr'] ?? 'No QR'),
-                                            _buildActionCell(context, row, entryId),
-                                          ],
-                                        ),
-                                      )
-                                      .toList(),
-                                ],
+                                        )
+                                        .toList(),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    );
-                  }),
-                ),
-              ],
-            );
-          } else {
-            return Center(child: const Text('No data found.'));
-          }
-        },
+                        ],
+                      );
+                    }),
+                  ),
+                ],
+              );
+            } else {
+              return Center(child: const Text('No data found.'));
+            }
+          },
+        ),
       ),
     );
   }
@@ -213,6 +223,7 @@ class FormPageDetailView extends StatelessWidget {
         }
         if (imagePath.isNotEmpty) {
           String baseUrl = 'https://saraka.kelaskita.site/storage/';
+          // String baseUrl = 'http://localhost:8000/storage/';
           String imageUrl = baseUrl + imagePath;
           Get.dialog(
             Dialog(
@@ -258,7 +269,8 @@ class FormPageDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildActionCell(BuildContext context, Map<String, dynamic> row, int entryId) {
+  Widget _buildActionCell(
+      BuildContext context, Map<String, dynamic> row, int entryId) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
