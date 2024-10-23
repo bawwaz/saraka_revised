@@ -33,7 +33,6 @@ class FormPageController extends GetxController {
     getAllData();
     _setupScrollSync();
 
-    // Listen to scroll events
     verticalScrollControllerBody.addListener(() {
       isTableScrolling.value = verticalScrollControllerBody.position.pixels > 0;
     });
@@ -44,6 +43,7 @@ class FormPageController extends GetxController {
     horizontalScrollControllerHeader.dispose();
     horizontalScrollControllerBody.dispose();
     verticalScrollControllerBody.dispose();
+
     super.onClose();
   }
 
