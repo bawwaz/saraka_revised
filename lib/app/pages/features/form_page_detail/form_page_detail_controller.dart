@@ -129,7 +129,7 @@ class FormPageDetailController extends GetxController {
         int shiftTextY = 150;
         int productNameTextY = 200;
 
-        img.drawString(resizedImage, 'Saraka,$dateTimeString',
+        img.drawString(resizedImage, 'PT Saraka Mandiri Semesta,$dateTimeString',
             font: font, x: 10, y: resizedImage.height - 50);
         img.drawString(resizedImage, 'Operator: $operatorText',
             font: font, x: textX, y: operatorTextY);

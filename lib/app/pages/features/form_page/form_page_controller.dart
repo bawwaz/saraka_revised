@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:isolate'; // Import for using isolates
+import 'dart:isolate';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -20,8 +20,10 @@ class FormPageController extends GetxController {
   var selectedShift = '1'.obs;
   late String username;
 
-  // Scroll controller to listen to table scrolling
-  ScrollController tableScrollController = ScrollController();
+  // Scroll controllers for scroll synchronization
+  final ScrollController horizontalScrollControllerHeader = ScrollController();
+  final ScrollController horizontalScrollControllerBody = ScrollController();
+  final ScrollController verticalScrollControllerBody = ScrollController();
 
   @override
   void onInit() {
@@ -29,18 +31,43 @@ class FormPageController extends GetxController {
     username = Get.arguments['username'];
     operatorController.text = username;
     getAllData();
+    _setupScrollSync();
 
     // Listen to scroll events
-    tableScrollController.addListener(() {
-      isTableScrolling.value = tableScrollController.position.pixels > 0;
+    verticalScrollControllerBody.addListener(() {
+      isTableScrolling.value = verticalScrollControllerBody.position.pixels > 0;
     });
   }
 
   @override
   void onClose() {
-    tableScrollController
-        .dispose(); // Clean up the controller when the widget is removed
+    horizontalScrollControllerHeader.dispose();
+    horizontalScrollControllerBody.dispose();
+    verticalScrollControllerBody.dispose();
     super.onClose();
+  }
+
+  // Function to synchronize horizontal scrolling
+  void _setupScrollSync() {
+    horizontalScrollControllerBody.addListener(() {
+      if (horizontalScrollControllerHeader.offset !=
+          horizontalScrollControllerBody.offset) {
+        horizontalScrollControllerHeader
+            .jumpTo(horizontalScrollControllerBody.offset);
+        print(
+            'Body is being scrolled horizontally: ${horizontalScrollControllerBody.offset}');
+      }
+    });
+
+    horizontalScrollControllerHeader.addListener(() {
+      if (horizontalScrollControllerBody.offset !=
+          horizontalScrollControllerHeader.offset) {
+        horizontalScrollControllerBody
+            .jumpTo(horizontalScrollControllerHeader.offset);
+        print(
+            'Header is being scrolled horizontally: ${horizontalScrollControllerHeader.offset}');
+      }
+    });
   }
 
   Future<void> _setCurrentOperator() async {
