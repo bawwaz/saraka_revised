@@ -14,11 +14,10 @@ class FormPageDetailController extends GetxController {
   File? pickedImage;
   var scannedQR = ''.obs;
 
-  // Scroll Controllers for syncing header and body
   final ScrollController horizontalScrollControllerHeader = ScrollController();
   final ScrollController horizontalScrollControllerBody = ScrollController();
   final ScrollController verticalScrollControllerBody = ScrollController();
-  var isTableScrolling = false.obs; // Track if the table is scrolling
+  var isTableScrolling = false.obs;
 
   @override
   void onInit() {
@@ -27,9 +26,6 @@ class FormPageDetailController extends GetxController {
 
     verticalScrollControllerBody.addListener(() {
       isTableScrolling.value = verticalScrollControllerBody.position.pixels > 0;
-
-      // Print the current scroll position
-      print('Vertical scroll position: ${verticalScrollControllerBody.position.pixels}');
     });
   }
 
@@ -41,26 +37,28 @@ class FormPageDetailController extends GetxController {
     super.onClose();
   }
 
-  // Function to synchronize horizontal scrolling
   void _setupScrollSync() {
     horizontalScrollControllerBody.addListener(() {
-      if (horizontalScrollControllerHeader.offset != horizontalScrollControllerBody.offset) {
-        horizontalScrollControllerHeader.jumpTo(horizontalScrollControllerBody.offset);
-        print('Body is being scrolled horizontally: ${horizontalScrollControllerBody.offset}');
+      if (horizontalScrollControllerHeader.offset !=
+          horizontalScrollControllerBody.offset) {
+        horizontalScrollControllerHeader
+            .jumpTo(horizontalScrollControllerBody.offset);
       }
     });
 
     horizontalScrollControllerHeader.addListener(() {
-      if (horizontalScrollControllerBody.offset != horizontalScrollControllerHeader.offset) {
-        horizontalScrollControllerBody.jumpTo(horizontalScrollControllerHeader.offset);
-        print('Header is being scrolled horizontally: ${horizontalScrollControllerHeader.offset}');
+      if (horizontalScrollControllerBody.offset !=
+          horizontalScrollControllerHeader.offset) {
+        horizontalScrollControllerBody
+            .jumpTo(horizontalScrollControllerHeader.offset);
+        print(
+            'Header is being scrolled horizontally: ${horizontalScrollControllerHeader.offset}');
       }
     });
   }
 
-  // Fetch the data from API and format it
   Future<Map<String, dynamic>> fetchData(int id) async {
-    final String url = ApiEndpoint.baseUrl;
+    final String url = ApiEndpoint.baseUrlEntries;
     try {
       final response = await http.get(Uri.parse('$url/get/$id'));
       if (response.statusCode == 200) {
@@ -79,19 +77,21 @@ class FormPageDetailController extends GetxController {
 
         print('Fetched Data: $data');
 
-        // Map the media data into tableData observable
-        tableData.value = List<Map<String, dynamic>>.from(data['media'].map((media) {
-          print('Image Title: ${media['image_title'] ?? 'No Title'}');
-          print('Image Size: ${media['size'] ?? 'Unknown Size'}');
-
-          return {
-            'id': media['id'],
-            'image': media['image'],
-            'image_title': media['image_title'],
-            'qr': media['qrcode'],
-            'size': media['size'],
-          };
-        }).toList());
+        tableData.value = List<Map<String, dynamic>>.from(data['media']
+            .map((media) {
+              print('Image Title: ${media['image_title'] ?? 'No Title'}');
+              print('Image Size: ${media['size'] ?? 'Unknown Size'}');
+              return {
+                'id': media['id'],
+                'image': media['image'],
+                'image_title': media['image_title'],
+                'qr': media['qrcode'],
+                'size': media['size'],
+              };
+            })
+            .toList()
+            .reversed
+            .toList());
         return data;
       } else {
         throw Exception('Failed to load details');
@@ -101,9 +101,9 @@ class FormPageDetailController extends GetxController {
     }
   }
 
-  // Method to upload media files
-  Future<void> uploadMedia(int sarakaEntryId, File image, String qrCode, String customFileName) async {
-    final String url = 'https://saraka.kelaskita.site/api/saraka-medias/post';
+  Future<void> uploadMedia(int sarakaEntryId, File image, String qrCode,
+      String customFileName) async {
+    final String url = ApiEndpoint.MediaBaseUrl + "/post";
     final String apiToken = 'your_api_token';
 
     try {
@@ -135,18 +135,10 @@ class FormPageDetailController extends GetxController {
         print('response: $responseBody');
         Get.snackbar('Success', 'Media uploaded successfully');
         await fetchData(sarakaEntryId);
-      } else {
-        var responseString = await response.stream.bytesToString();
-        print('Error response: $responseString');
-        Get.snackbar('Error', 'Failed to upload media');
-      }
-    } catch (error) {
-      print('Error: $error');
-      Get.snackbar('Error', 'Failed to upload media');
-    }
+      } else {}
+    } catch (error) {}
   }
 
-  // Pick an image from the camera, add metadata, and resize the image
   Future<void> pickImage(int id) async {
     final XFile? image = await picker.pickImage(source: ImageSource.camera);
 
@@ -158,7 +150,8 @@ class FormPageDetailController extends GetxController {
 
       if (decodedImage != null) {
         img.Image resizedImage = img.copyResize(decodedImage, width: 1024);
-        var font = img.arial48;
+        var font1 = img.arial24;
+        var font2 = img.arial48;
 
         Map<String, dynamic> data = await fetchData(id);
 
@@ -167,35 +160,55 @@ class FormPageDetailController extends GetxController {
         String shiftText = data['shift'] ?? 'Unknown';
         String productNameText = data['product_name'] ?? 'Unknown';
 
-        String dateTimeString = DateFormat('dd MMM yyyy HH:mm:ss').format(DateTime.now());
+        String dateTimeString =
+            DateFormat('dd MMM yyyy HH:mm:ss').format(DateTime.now());
 
         int textX = 10;
-        int operatorTextY = 100;
-        int shiftTextY = 150;
-        int productNameTextY = 200;
+        int operatorTextY = 50;
+        int shiftTextY = 100;
+        int productNameTextY = 150;
 
-        img.drawString(resizedImage, 'PT Saraka Mandiri Semesta, $dateTimeString',
-            font: font, x: textX, y: resizedImage.height - 50);
-        img.drawString(resizedImage, 'Operator: $operatorText', font: font, x: textX, y: operatorTextY);
-        img.drawString(resizedImage, 'Shift: $shiftText', font: font, x: textX, y: shiftTextY);
-        img.drawString(resizedImage, 'Product: ($batchProduct)', font: font, x: textX, y: productNameTextY);
+        img.drawString(
+            resizedImage, 'PT Saraka Mandiri Semesta, $dateTimeString',
+            font: font1, x: textX, y: resizedImage.height - 50);
+        img.drawString(resizedImage, 'Operator: $operatorText',
+            font: font2, x: textX, y: operatorTextY);
+        img.drawString(resizedImage, 'Shift: $shiftText',
+            font: font2, x: textX, y: shiftTextY);
+        img.drawString(resizedImage, 'Product: ($batchProduct)',
+            font: font2, x: textX, y: productNameTextY);
 
-        double avgCharWidth = font.size * 0.8;
+        double avgCharWidth = font2.size * 0.8;
         int productNameWidth = (productNameText.length * avgCharWidth).toInt();
 
-        int batchX = textX + productNameWidth + 240;
-        img.drawString(resizedImage, productNameText, font: font, x: batchX, y: productNameTextY);
+        int batchX = textX + productNameWidth + 150;
+        img.drawString(resizedImage, productNameText,
+            font: font2, x: batchX, y: productNameTextY);
 
-        final compressedImageBytes = img.encodeJpg(resizedImage, quality: 80);
-        final compressedFile = File(image.path)..writeAsBytesSync(compressedImageBytes);
+        // Compress the image until it is below 80KB
+        List<int> compressedImageBytes;
+        int quality = 80; // Start with 80% quality
+        do {
+          compressedImageBytes = img.encodeJpg(resizedImage, quality: quality);
+          quality -= 5;
+          if (quality < 10) break;
+        } while (compressedImageBytes.length > 80 * 1024); // 80KB in bytes
 
+        // Write the compressed image back to the file
+        final compressedFile = File(image.path)
+          ..writeAsBytesSync(compressedImageBytes);
         pickedImage = compressedFile;
+
+        print('Compressed image size: ${compressedImageBytes.length} bytes');
       }
     }
   }
 
   Future<void> deleteMedia(int mediaId, int entryId) async {
-    final String url = 'https://saraka.kelaskita.site/api/saraka-medias/delete/$mediaId';
+    final String url =
+        "https://saraka.kelaskita.site/api/saraka-medias/delete/$mediaId";
+
+    // ApiEndpoint.MediaBaseUrl + "delete/$mediaId";
     final String apiToken = 'your_api_token';
 
     try {

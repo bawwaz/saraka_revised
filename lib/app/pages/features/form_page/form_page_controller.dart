@@ -54,8 +54,6 @@ class FormPageController extends GetxController {
           horizontalScrollControllerBody.offset) {
         horizontalScrollControllerHeader
             .jumpTo(horizontalScrollControllerBody.offset);
-        print(
-            'Body is being scrolled horizontally: ${horizontalScrollControllerBody.offset}');
       }
     });
 
@@ -64,8 +62,6 @@ class FormPageController extends GetxController {
           horizontalScrollControllerHeader.offset) {
         horizontalScrollControllerBody
             .jumpTo(horizontalScrollControllerHeader.offset);
-        print(
-            'Header is being scrolled horizontally: ${horizontalScrollControllerHeader.offset}');
       }
     });
   }
@@ -129,7 +125,7 @@ class FormPageController extends GetxController {
   }
 
   Future<void> getAllData() async {
-    String url = ApiEndpoint.baseUrl;
+    String url = ApiEndpoint.baseUrlEntries;
     isLoading.value = true; // Start loading
 
     try {
@@ -137,7 +133,6 @@ class FormPageController extends GetxController {
       if (response.statusCode == 200) {
         List<dynamic> fetchedData = json.decode(response.body);
 
-        // Process data in an isolate to avoid freezing the UI
         List<Map<String, dynamic>> sortedData =
             await _sortDataInIsolate(fetchedData);
         tableData.value = sortedData;
@@ -172,7 +167,7 @@ class FormPageController extends GetxController {
   }
 
   Future<bool> postData() async {
-    String url = ApiEndpoint.baseUrl;
+    String url = ApiEndpoint.baseUrlEntries;
     isLoading.value = true;
 
     Map<String, dynamic> postData = {
@@ -211,7 +206,7 @@ class FormPageController extends GetxController {
   }
 
   Future<void> deleteRow(int id) async {
-    String url = ApiEndpoint.baseUrl + '/delete/$id';
+    String url = ApiEndpoint.baseUrlEntries + '/delete/$id';
     isLoading.value = true;
 
     try {
