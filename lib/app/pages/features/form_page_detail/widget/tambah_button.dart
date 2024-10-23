@@ -23,7 +23,7 @@ class TambahButton extends StatelessWidget {
           String batchProduct = data['batch_product'].toString();
           DateTime parsedDate = DateFormat('d MMMM yyyy').parse(processDate);
           String formattedDate = DateFormat('ddMMyyyy').format(parsedDate);
-          String romanShift = formDetailController.RomanNumeral(shift);
+          String romanShift = formDetailController.romanNumeral(shift);
           int mediaCount = formDetailController.tableData.length + 1;
           String customFileName =
               '$formattedDate-$romanShift-$batchProduct-$mediaCount.jpg';

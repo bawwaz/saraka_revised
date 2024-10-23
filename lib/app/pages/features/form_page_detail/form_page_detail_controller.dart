@@ -5,15 +5,60 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
 import 'package:saraka_revised/app/api/api_endpoint.dart';
 
 class FormPageDetailController extends GetxController {
   final picker = ImagePicker();
   var tableData = <Map<String, dynamic>>[].obs;
   File? pickedImage;
-
   var scannedQR = ''.obs;
 
+  // Scroll Controllers for syncing header and body
+  final ScrollController horizontalScrollControllerHeader = ScrollController();
+  final ScrollController horizontalScrollControllerBody = ScrollController();
+  final ScrollController verticalScrollControllerBody = ScrollController();
+  var isTableScrolling = false.obs; // Track if the table is scrolling
+
+  @override
+  void onInit() {
+    super.onInit();
+    _setupScrollSync();
+
+    verticalScrollControllerBody.addListener(() {
+      isTableScrolling.value = verticalScrollControllerBody.position.pixels > 0;
+
+      // Print the current scroll position
+      print('Vertical scroll position: ${verticalScrollControllerBody.position.pixels}');
+    });
+  }
+
+  @override
+  void onClose() {
+    horizontalScrollControllerHeader.dispose();
+    horizontalScrollControllerBody.dispose();
+    verticalScrollControllerBody.dispose();
+    super.onClose();
+  }
+
+  // Function to synchronize horizontal scrolling
+  void _setupScrollSync() {
+    horizontalScrollControllerBody.addListener(() {
+      if (horizontalScrollControllerHeader.offset != horizontalScrollControllerBody.offset) {
+        horizontalScrollControllerHeader.jumpTo(horizontalScrollControllerBody.offset);
+        print('Body is being scrolled horizontally: ${horizontalScrollControllerBody.offset}');
+      }
+    });
+
+    horizontalScrollControllerHeader.addListener(() {
+      if (horizontalScrollControllerBody.offset != horizontalScrollControllerHeader.offset) {
+        horizontalScrollControllerBody.jumpTo(horizontalScrollControllerHeader.offset);
+        print('Header is being scrolled horizontally: ${horizontalScrollControllerHeader.offset}');
+      }
+    });
+  }
+
+  // Fetch the data from API and format it
   Future<Map<String, dynamic>> fetchData(int id) async {
     final String url = ApiEndpoint.baseUrl;
     try {
@@ -34,7 +79,8 @@ class FormPageDetailController extends GetxController {
 
         print('Fetched Data: $data');
 
-        tableData.value = data['media'].map<Map<String, dynamic>>((media) {
+        // Map the media data into tableData observable
+        tableData.value = List<Map<String, dynamic>>.from(data['media'].map((media) {
           print('Image Title: ${media['image_title'] ?? 'No Title'}');
           print('Image Size: ${media['size'] ?? 'Unknown Size'}');
 
@@ -45,7 +91,7 @@ class FormPageDetailController extends GetxController {
             'qr': media['qrcode'],
             'size': media['size'],
           };
-        }).toList();
+        }).toList());
         return data;
       } else {
         throw Exception('Failed to load details');
@@ -55,10 +101,9 @@ class FormPageDetailController extends GetxController {
     }
   }
 
-  Future<void> uploadMedia(int sarakaEntryId, File image, String qrCode,
-      String customFileName) async {
+  // Method to upload media files
+  Future<void> uploadMedia(int sarakaEntryId, File image, String qrCode, String customFileName) async {
     final String url = 'https://saraka.kelaskita.site/api/saraka-medias/post';
-
     final String apiToken = 'your_api_token';
 
     try {
@@ -101,6 +146,7 @@ class FormPageDetailController extends GetxController {
     }
   }
 
+  // Pick an image from the camera, add metadata, and resize the image
   Future<void> pickImage(int id) async {
     final XFile? image = await picker.pickImage(source: ImageSource.camera);
 
@@ -121,34 +167,27 @@ class FormPageDetailController extends GetxController {
         String shiftText = data['shift'] ?? 'Unknown';
         String productNameText = data['product_name'] ?? 'Unknown';
 
-        String dateTimeString =
-            DateFormat('dd MMM yyyy HH:mm:ss').format(DateTime.now());
+        String dateTimeString = DateFormat('dd MMM yyyy HH:mm:ss').format(DateTime.now());
 
         int textX = 10;
         int operatorTextY = 100;
         int shiftTextY = 150;
         int productNameTextY = 200;
 
-        img.drawString(resizedImage, 'PT Saraka Mandiri Semesta,$dateTimeString',
-            font: font, x: 10, y: resizedImage.height - 50);
-        img.drawString(resizedImage, 'Operator: $operatorText',
-            font: font, x: textX, y: operatorTextY);
-        img.drawString(resizedImage, 'Shift: $shiftText',
-            font: font, x: textX, y: shiftTextY);
-        img.drawString(resizedImage, 'Product: ($batchProduct)',
-            font: font, x: textX, y: productNameTextY);
+        img.drawString(resizedImage, 'PT Saraka Mandiri Semesta, $dateTimeString',
+            font: font, x: textX, y: resizedImage.height - 50);
+        img.drawString(resizedImage, 'Operator: $operatorText', font: font, x: textX, y: operatorTextY);
+        img.drawString(resizedImage, 'Shift: $shiftText', font: font, x: textX, y: shiftTextY);
+        img.drawString(resizedImage, 'Product: ($batchProduct)', font: font, x: textX, y: productNameTextY);
 
         double avgCharWidth = font.size * 0.8;
         int productNameWidth = (productNameText.length * avgCharWidth).toInt();
 
         int batchX = textX + productNameWidth + 240;
-        img.drawString(resizedImage, productNameText,
-            font: font, x: batchX, y: productNameTextY);
+        img.drawString(resizedImage, productNameText, font: font, x: batchX, y: productNameTextY);
 
         final compressedImageBytes = img.encodeJpg(resizedImage, quality: 80);
-
-        final compressedFile = File(image.path)
-          ..writeAsBytesSync(compressedImageBytes);
+        final compressedFile = File(image.path)..writeAsBytesSync(compressedImageBytes);
 
         pickedImage = compressedFile;
       }
@@ -156,8 +195,7 @@ class FormPageDetailController extends GetxController {
   }
 
   Future<void> deleteMedia(int mediaId, int entryId) async {
-    final String url =
-        'https://saraka.kelaskita.site/api/saraka-medias/delete/$mediaId';
+    final String url = 'https://saraka.kelaskita.site/api/saraka-medias/delete/$mediaId';
     final String apiToken = 'your_api_token';
 
     try {
@@ -181,7 +219,7 @@ class FormPageDetailController extends GetxController {
     }
   }
 
-  String RomanNumeral(int shift) {
+  String romanNumeral(int shift) {
     switch (shift) {
       case 1:
         return 'I';
