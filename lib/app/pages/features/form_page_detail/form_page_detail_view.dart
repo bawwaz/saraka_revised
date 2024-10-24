@@ -222,8 +222,9 @@ class FormPageDetailView extends StatelessWidget {
           imagePath = '';
         }
         if (imagePath.isNotEmpty) {
-          String baseUrl = 'https://saraka.kelaskita.site/storage/';
+          // String baseUrl = 'https://saraka.kelaskita.site/storage/';
           // String baseUrl = 'http://localhost:8000/storage/';
+          String baseUrl = 'https://09ec-182-2-165-215.ngrok-free.app/storage/';
           String imageUrl = baseUrl + imagePath;
           Get.dialog(
             Dialog(

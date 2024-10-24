@@ -103,11 +103,13 @@ class FormPageDetailController extends GetxController {
 
   Future<void> uploadMedia(int sarakaEntryId, File image, String qrCode,
       String customFileName) async {
-    final String url = ApiEndpoint.MediaBaseUrl + "/post";
+    final String url = ApiEndpoint.MediaBaseUrl;
+    // ApiEndpoint.MediaBaseUrl + "/post";
+
     final String apiToken = 'your_api_token';
 
     try {
-      var request = http.MultipartRequest('POST', Uri.parse(url));
+      var request = http.MultipartRequest('POST', Uri.parse('$url/post'));
       request.headers['Authorization'] = 'Bearer $apiToken';
       request.headers['Accept'] = 'application/json';
 
@@ -127,6 +129,7 @@ class FormPageDetailController extends GetxController {
       request.fields['image_title'] = customFileName;
 
       print('Sending the following fields:');
+      print('$url/post');
       request.fields.forEach((key, value) => print('$key: $value'));
 
       var response = await request.send();
@@ -181,20 +184,18 @@ class FormPageDetailController extends GetxController {
         double avgCharWidth = font2.size * 0.8;
         int productNameWidth = (productNameText.length * avgCharWidth).toInt();
 
-        int batchX = textX + productNameWidth + 150;
+        int batchX = textX + productNameWidth + 160;
         img.drawString(resizedImage, productNameText,
             font: font2, x: batchX, y: productNameTextY);
 
-        // Compress the image until it is below 80KB
         List<int> compressedImageBytes;
-        int quality = 80; // Start with 80% quality
+        int quality = 80;
         do {
           compressedImageBytes = img.encodeJpg(resizedImage, quality: quality);
           quality -= 5;
           if (quality < 10) break;
-        } while (compressedImageBytes.length > 80 * 1024); // 80KB in bytes
+        } while (compressedImageBytes.length > 80 * 1024);
 
-        // Write the compressed image back to the file
         final compressedFile = File(image.path)
           ..writeAsBytesSync(compressedImageBytes);
         pickedImage = compressedFile;
@@ -206,14 +207,13 @@ class FormPageDetailController extends GetxController {
 
   Future<void> deleteMedia(int mediaId, int entryId) async {
     final String url =
-        "https://saraka.kelaskita.site/api/saraka-medias/delete/$mediaId";
-
-    // ApiEndpoint.MediaBaseUrl + "delete/$mediaId";
+        // "https://saraka.kelaskita.site/api/saraka-medias/delete/$mediaId";
+        ApiEndpoint.MediaBaseUrl;
     final String apiToken = 'your_api_token';
 
     try {
       final response = await http.delete(
-        Uri.parse(url),
+        Uri.parse('$url/delete/$mediaId'),
         headers: {
           'Authorization': 'Bearer $apiToken',
           'Accept': 'application/json'
