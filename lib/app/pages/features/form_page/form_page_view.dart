@@ -100,8 +100,18 @@ class FormPageView extends StatelessWidget {
               ),
               TextField(
                 controller: formController.batchController,
-                decoration: InputDecoration(labelText: 'Batch Product'),
+                decoration: InputDecoration(
+                  labelText: 'Batch Product',
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.search),
+                    onPressed: () {
+                      formController.searchBatchProduct(
+                          context); // Call the function when pressed
+                    },
+                  ),
+                ),
               ),
+
               TextField(
                 controller: formController.kodeProdukController,
                 decoration: InputDecoration(labelText: 'Product Code'),
