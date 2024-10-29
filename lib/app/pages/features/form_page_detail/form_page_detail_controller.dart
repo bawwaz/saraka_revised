@@ -1,18 +1,18 @@
-import 'dart:convert';
+import 'dart:convert'; // Import for jsonDecode
 import 'dart:io';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
-import 'package:saraka_revised/app/api/api_endpoint.dart';
+import 'package:http/http.dart' as http;
 
 class FormPageDetailController extends GetxController {
   final picker = ImagePicker();
   var tableData = <Map<String, dynamic>>[].obs;
   File? pickedImage;
   var scannedQR = ''.obs;
+  Map<String, dynamic>? fetchedItem;
 
   final ScrollController horizontalScrollControllerHeader = ScrollController();
   final ScrollController horizontalScrollControllerBody = ScrollController();
@@ -27,6 +27,12 @@ class FormPageDetailController extends GetxController {
     verticalScrollControllerBody.addListener(() {
       isTableScrolling.value = verticalScrollControllerBody.position.pixels > 0;
     });
+
+    final String? id = Get.arguments['id']; 
+
+    if (id != null) {
+      fetchData(id);
+    }
   }
 
   @override
@@ -51,104 +57,88 @@ class FormPageDetailController extends GetxController {
           horizontalScrollControllerHeader.offset) {
         horizontalScrollControllerBody
             .jumpTo(horizontalScrollControllerHeader.offset);
-        print(
-            'Header is being scrolled horizontally: ${horizontalScrollControllerHeader.offset}');
       }
     });
   }
 
-  Future<Map<String, dynamic>> fetchData(int id) async {
-    final String url = ApiEndpoint.baseUrlEntries;
+  Future<List<Map<String, dynamic>>> fetchDataMedia(
+      String bc, String shift) async {
     try {
-      final response = await http.get(Uri.parse('$url/get/$id'));
+      final response = await http.get(Uri.parse(
+        'http://192.168.101.65/saraka/android/Data_Vw_FileFoto.php?bc=$bc&shift=$shift',
+      ));
+
       if (response.statusCode == 200) {
-        var data = json.decode(response.body);
-
-        String formattedProcessDate = DateFormat('dd MMMM yyyy')
-            .format(DateTime.parse(data['process_date']));
-        String formattedCreatedAt = DateFormat('dd MMMM yyyy')
-            .format(DateTime.parse(data['created_at']));
-        String formattedUpdatedAt = DateFormat('dd MMMM yyyy')
-            .format(DateTime.parse(data['updated_at']));
-
-        data['process_date'] = formattedProcessDate;
-        data['created_at'] = formattedCreatedAt;
-        data['updated_at'] = formattedUpdatedAt;
-
-        print('Fetched Data: $data');
-
-        tableData.value = List<Map<String, dynamic>>.from(data['media']
-            .map((media) {
-              print('Image Title: ${media['image_title'] ?? 'No Title'}');
-              print('Image Size: ${media['size'] ?? 'Unknown Size'}');
-              return {
-                'id': media['id'],
-                'image': media['image'],
-                'image_title': media['image_title'],
-                'qr': media['qrcode'],
-                'size': media['size'],
-              };
-            })
-            .toList()
-            .reversed
-            .toList());
-        return data;
+        List<dynamic> jsonData = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(
+            jsonData); // Convert to a list of maps
       } else {
-        throw Exception('Failed to load details');
+        throw Exception('Failed to load media data');
       }
-    } catch (e) {
-      throw Exception('Failed to connect to the server');
+    } catch (error) {
+      print('Error fetching data: $error');
+      return [];
     }
   }
 
-  Future<void> uploadMedia(int sarakaEntryId, File image, String qrCode,
-      String customFileName) async {
-    final String url = ApiEndpoint.MediaBaseUrl;
-    // ApiEndpoint.MediaBaseUrl + "/post";
-
-    final String apiToken = 'your_api_token';
-
+  Future<void> fetchData(String id) async {
     try {
-      var request = http.MultipartRequest('POST', Uri.parse('$url/post'));
-      request.headers['Authorization'] = 'Bearer $apiToken';
-      request.headers['Accept'] = 'application/json';
+      final response = await http.get(Uri.parse(
+          'http://192.168.101.65/saraka/android/Data_FilterDetail.php?id=$id'));
 
-      var imageStream = http.ByteStream(image.openRead());
-      var imageLength = await image.length();
-      request.files.add(
-        http.MultipartFile(
-          'image',
-          imageStream,
-          imageLength,
-          filename: customFileName,
-        ),
-      );
-
-      request.fields['saraka_entry_id'] = sarakaEntryId.toString();
-      request.fields['qrcode'] = qrCode;
-      request.fields['image_title'] = customFileName;
-
-      print('Sending the following fields:');
-      print('$url/post');
-      request.fields.forEach((key, value) => print('$key: $value'));
-
-      var response = await request.send();
       if (response.statusCode == 200) {
-        var responseBody = await response.stream.bytesToString();
-        print('response: $responseBody');
-        Get.snackbar('Success', 'Media uploaded successfully');
-        await fetchData(sarakaEntryId);
-      } else {}
-    } catch (error) {}
+        List<dynamic> data = jsonDecode(response.body);
+        tableData.value = data.map((item) {
+          return {
+            'id': item['id'],
+            'shift': item['shift'],
+            'product_name': item['product_name'],
+            'product_code': item['product_code'],
+            'batch_product': item['batch_product'],
+            'process_date': item['process_date'],
+            'operator': item['operator'],
+            'image_title': '',
+            'qrcode': ''
+          };
+        }).toList();
+
+        if (tableData.isNotEmpty) {
+          fetchedItem = tableData.first;
+
+          String bc = fetchedItem!['batch_product'];
+          String shift = fetchedItem!['shift'];
+
+          List<Map<String, dynamic>> mediaData =
+              await fetchDataMedia(bc, shift);
+          // Add media data to the table
+          for (var media in mediaData) {
+            tableData.add({
+              'image_title': media['image_title'] ?? 'No title',
+              'qrcode': media['qrcode'] ?? 'No QR',
+              // Add empty placeholders for the other fields
+              'id': '',
+              'shift': '',
+              'product_name': '',
+              'product_code': '',
+              'batch_product': '',
+              'process_date': '',
+              'operator': ''
+            });
+          }
+        }
+      } else {
+        print('Failed to load data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
   }
 
-  Future<void> pickImage(int id) async {
+  Future<void> pickImage() async {
     final XFile? image = await picker.pickImage(source: ImageSource.camera);
-
     if (image != null) {
       final imageFile = File(image.path);
       final bytes = await imageFile.readAsBytes();
-
       img.Image? decodedImage = img.decodeImage(bytes);
 
       if (decodedImage != null) {
@@ -156,37 +146,27 @@ class FormPageDetailController extends GetxController {
         var font1 = img.arial24;
         var font2 = img.arial48;
 
-        Map<String, dynamic> data = await fetchData(id);
-
-        String batchProduct = data['batch_product'] ?? 'unknown';
-        String operatorText = data['operator'] ?? 'Unknown';
-        String shiftText = data['shift'] ?? 'Unknown';
-        String productNameText = data['product_name'] ?? 'Unknown';
+        String batchProduct = 'unknown';
+        String operatorText = 'Unknown';
+        String shiftText = 'Unknown';
+        String productNameText = 'Unknown';
 
         String dateTimeString =
             DateFormat('dd MMM yyyy HH:mm:ss').format(DateTime.now());
 
-        int textX = 10;
-        int operatorTextY = 50;
-        int shiftTextY = 100;
-        int productNameTextY = 150;
-
         img.drawString(
             resizedImage, 'PT Saraka Mandiri Semesta, $dateTimeString',
-            font: font1, x: textX, y: resizedImage.height - 50);
+            font: font1, x: 10, y: resizedImage.height - 50);
         img.drawString(resizedImage, 'Operator: $operatorText',
-            font: font2, x: textX, y: operatorTextY);
+            font: font2, x: 10, y: 50);
         img.drawString(resizedImage, 'Shift: $shiftText',
-            font: font2, x: textX, y: shiftTextY);
+            font: font2, x: 10, y: 100);
         img.drawString(resizedImage, 'Product: ($batchProduct)',
-            font: font2, x: textX, y: productNameTextY);
-
-        double avgCharWidth = font2.size * 0.8;
-        int productNameWidth = (productNameText.length * avgCharWidth).toInt();
-
-        int batchX = textX + productNameWidth + 160;
+            font: font2, x: 10, y: 150);
         img.drawString(resizedImage, productNameText,
-            font: font2, x: batchX, y: productNameTextY);
+            font: font2,
+            x: 10 + (productNameText.length * 8),
+            y: 150); 
 
         List<int> compressedImageBytes;
         int quality = 80;
@@ -205,40 +185,33 @@ class FormPageDetailController extends GetxController {
     }
   }
 
-  Future<void> deleteMedia(int mediaId, int entryId) async {
-    final String url =
-        // "https://saraka.kelaskita.site/api/saraka-medias/delete/$mediaId";
-        ApiEndpoint.MediaBaseUrl;
-    final String apiToken = 'your_api_token';
+  Future<void> postMedia({
+    required String id,
+    required String nf,
+    required String bc,
+  }) async {
+    final String url = 'http://192.168.101.65/saraka/Data_InputBCode.php';
 
     try {
-      final response = await http.delete(
-        Uri.parse('$url/delete/$mediaId'),
-        headers: {
-          'Authorization': 'Bearer $apiToken',
-          'Accept': 'application/json'
-        },
-      );
+      final response = await http.get(Uri.parse('$url?id=$id&nf=$nf&bc=$bc'));
 
       if (response.statusCode == 200) {
-        Get.snackbar('Success', 'Media deleted successfully');
-        await fetchData(entryId);
+        print('Response data: ${response.body}');
       } else {
-        Get.snackbar('Error', 'Failed to delete media');
+        print('Failed to post media. Status code: ${response.statusCode}');
       }
     } catch (error) {
-      print('Error: $error');
-      Get.snackbar('Error', 'Failed to delete media');
+      print('Error occurred: $error');
     }
   }
 
-  String romanNumeral(int shift) {
+  String romanNumeral(String shift) {
     switch (shift) {
-      case 1:
+      case 'i':
         return 'I';
-      case 2:
+      case 'ii':
         return 'II';
-      case 3:
+      case 'iii':
         return 'III';
       default:
         return '';

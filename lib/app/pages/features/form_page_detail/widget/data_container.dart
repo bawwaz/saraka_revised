@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 class DataContainer extends StatelessWidget {
   final Map<String, dynamic> data;
 
-  const DataContainer({super.key, required this.data}); // Accept data through the constructor
+  const DataContainer({
+    Key? key,
+    required this.data, 
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -19,142 +22,37 @@ class DataContainer extends StatelessWidget {
           2: FlexColumnWidth(),
         },
         children: [
-          TableRow(
-            decoration: BoxDecoration(),
-            children: [
-              const Text(
-                'ID',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 10.0),
-                child: Text(
-                  ' : ${data['id'].toString()}',
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-          TableRow(
-            children: [
-              const Text(
-                'Shift',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 10.0),
-                child: Text(
-                  ' : ${data['shift'].toString()}',
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-          TableRow(
-            children: [
-              const Text(
-                'Product Name',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 10.0),
-                child: Text(
-                  ' : ${data['product_name'].toString()}',
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-          TableRow(
-            children: [
-              const Text(
-                'Product Code',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 10.0),
-                child: Text(
-                  ' : ${data['product_code'].toString()}',
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-          TableRow(
-            children: [
-              const Text(
-                'Batch Product',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 8.0),
-                child: Text(
-                  ' : ${data['batch_product'].toString()}',
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-          TableRow(
-            children: [
-              const Text(
-                'Process Date',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 10.0),
-                child: Text(
-                  ' : ${data['process_date'].toString()}',
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-          TableRow(
-            children: [
-              const Text(
-                'Operator',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 10.0),
-                child: Text(
-                  ' : ${data['operator'].toString()}',
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
+          _buildRow('ID', data['id']),
+          _buildRow('Shift', data['shift']),
+          _buildRow('Product Name', data['product_name']),
+          _buildRow('Product Code', data['product_code']),
+          _buildRow('Batch Product', data['batch_product']),
+          _buildRow('Process Date', data['process_date']),
+          _buildRow('Operator', data['operator']),
         ],
       ),
+    );
+  }
+
+  TableRow _buildRow(String label, dynamic value) {
+    return TableRow(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 10.0),
+          child: Text(
+            ' : ${value?.toString() ?? 'Not Available'}',
+            style: const TextStyle(fontSize: 16, color: Colors.white),
+          ),
+        ),
+      ],
     );
   }
 }

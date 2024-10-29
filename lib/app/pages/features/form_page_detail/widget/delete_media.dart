@@ -4,14 +4,12 @@ import 'package:saraka_revised/app/pages/features/form_page_detail/form_page_det
 
 class DeleteMedia extends StatelessWidget {
   final FormPageDetailController formDetailController;
-  final Map<String, dynamic> row; 
-  final int entryId; 
+  final Map<String, dynamic> row;
 
   const DeleteMedia({
     super.key,
     required this.formDetailController,
     required this.row,
-    required this.entryId,
   });
 
   @override
@@ -46,10 +44,10 @@ class DeleteMedia extends StatelessWidget {
                       child: Center(
                         child: TextButton(
                           onPressed: () {
-                            formDetailController.deleteMedia(
-                              row['id'],
-                              entryId,
-                            );
+                            // formDetailController.deleteMedia(
+                            //   row['id'],
+                            //   entryId,
+                            // );
                             Navigator.of(context).pop();
                           },
                           child: const Text(

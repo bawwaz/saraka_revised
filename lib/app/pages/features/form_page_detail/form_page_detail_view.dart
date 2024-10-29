@@ -7,15 +7,12 @@ import './widget/data_container.dart';
 import './widget/delete_media.dart';
 import './widget/qr_textfield.dart';
 import './widget/tambah_button.dart';
-import 'dart:io';
 
 class FormPageDetailView extends StatelessWidget {
   final formDetailController = Get.put(FormPageDetailController());
 
   @override
   Widget build(BuildContext context) {
-    final int entryId = Get.arguments;
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -36,150 +33,143 @@ class FormPageDetailView extends StatelessWidget {
       ),
       body: Container(
         margin: EdgeInsets.all(20),
-        child: FutureBuilder<Map<String, dynamic>>(
-          future: formDetailController.fetchData(entryId),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (snapshot.hasData) {
-              var data = snapshot.data!;
-              return Column(
-                children: [
-                  DataContainer(data: data),
-                  const Divider(height: 30, thickness: 1),
-                  GestureDetector(
-                    onTap: () => formDetailController.pickImage(entryId),
-                    child: AbsorbPointer(child: CameraTextfield()),
-                  ),
-                  SizedBox(height: 10),
-                  GestureDetector(
-                    onTap: () => ScanQRDialog(context),
-                    child: AbsorbPointer(child: QrTextfield()),
-                  ),
-                  SizedBox(height: 10),
-                  TambahButton(data: data),
-                  const SizedBox(height: 20),
-                  Expanded(
-                    child: Obx(() {
-                      if (formDetailController.tableData.isEmpty) {
-                        return Center(child: Text('No media available'));
-                      }
-
-                      return Column(
-                        children: [
-                          // Horizontal scrollable header
-                          SingleChildScrollView(
-                            controller: formDetailController
-                                .horizontalScrollControllerHeader,
-                            scrollDirection: Axis.horizontal,
-                            child: Table(
-                              columnWidths: const {
-                                0: FixedColumnWidth(50.0),
-                                1: FixedColumnWidth(100.0),
-                                2: FixedColumnWidth(150.0),
-                                3: FixedColumnWidth(120.0),
-                                4: FixedColumnWidth(130.0),
-                                5: FixedColumnWidth(120.0),
-                              },
-                              border: TableBorder(
-                                horizontalInside: BorderSide(
-                                  width: 1,
-                                  color: Colors.black,
-                                  style: BorderStyle.solid,
-                                ),
-                                verticalInside: BorderSide(
-                                  width: 1,
-                                  color: Colors.black,
-                                  style: BorderStyle.solid,
-                                ),
-                              ),
-                              children: [
-                                // Header row
-                                TableRow(
-                                  decoration: BoxDecoration(
-                                    color: Color.fromARGB(255, 215, 238, 151),
-                                  ),
-                                  children: [
-                                    _buildHeaderCell('No'),
-                                    _buildHeaderCell('Image'),
-                                    _buildHeaderCell('Image Title'),
-                                    _buildHeaderCell('QR Code'),
-                                    _buildHeaderCell('Actions'),
-                                  ],
-                                ),
-                              ],
-                            ),
+        child: Column(
+          children: [
+            Obx(() {
+              return formDetailController.tableData.isNotEmpty
+                  ? DataContainer(
+                      data: formDetailController.tableData
+                          .first) // Pass first item in tableData for demonstration
+                  : const Center(child: Text('No data available'));
+            }),
+            const Divider(height: 30, thickness: 1),
+            GestureDetector(
+              onTap: () => ScanQRDialog(context),
+              // formDetailController.pickImage(),
+              child: AbsorbPointer(child: QrTextfield()),
+            ),
+            SizedBox(height: 10),
+            GestureDetector(
+              onTap: () => formDetailController.pickImage(),
+              //  ScanQRDialog(context),
+              child: AbsorbPointer(child: CameraTextfield()),
+            ),
+            SizedBox(height: 10),
+            TambahButton(data: {
+              'process_date': formDetailController.fetchedItem!['process_date'],
+              'shift': formDetailController.fetchedItem!['shift'],
+              'batch_product':
+                  formDetailController.fetchedItem!['batch_product'],
+            }),
+            const SizedBox(height: 20),
+            Expanded(
+              child: Obx(() {
+                if (formDetailController.tableData.isEmpty) {
+                  return Center(child: Text('No media available'));
+                }
+                return Column(
+                  children: [
+                    SingleChildScrollView(
+                      controller:
+                          formDetailController.horizontalScrollControllerHeader,
+                      scrollDirection: Axis.horizontal,
+                      child: Table(
+                        columnWidths: const {
+                          0: FixedColumnWidth(50.0),
+                          1: FixedColumnWidth(100.0),
+                          2: FixedColumnWidth(150.0),
+                          3: FixedColumnWidth(120.0),
+                          4: FixedColumnWidth(130.0),
+                          5: FixedColumnWidth(120.0),
+                        },
+                        border: TableBorder(
+                          horizontalInside: BorderSide(
+                            width: 1,
+                            color: Colors.black,
+                            style: BorderStyle.solid,
                           ),
-                          // Scrollable body
-                          Expanded(
-                            child: SingleChildScrollView(
-                              controller: formDetailController
-                                  .verticalScrollControllerBody,
-                              child: SingleChildScrollView(
-                                controller: formDetailController
-                                    .horizontalScrollControllerBody,
-                                scrollDirection: Axis.horizontal,
-                                child: Table(
-                                  columnWidths: const {
-                                    0: FixedColumnWidth(50.0),
-                                    1: FixedColumnWidth(100.0),
-                                    2: FixedColumnWidth(150.0),
-                                    3: FixedColumnWidth(120.0),
-                                    4: FixedColumnWidth(130.0),
-                                    5: FixedColumnWidth(120.0),
-                                  },
-                                  border: TableBorder(
-                                    horizontalInside: BorderSide(
-                                      width: 1,
-                                      color: Colors.black,
-                                      style: BorderStyle.solid,
-                                    ),
-                                    verticalInside: BorderSide(
-                                      width: 1,
-                                      color: Colors.black,
-                                      style: BorderStyle.solid,
-                                    ),
-                                  ),
-                                  children: [
-                                    // Data rows
-                                    ...formDetailController.tableData
-                                        .map(
-                                          (row) => TableRow(
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey[200],
-                                            ),
-                                            children: [
-                                              _buildDataCell(
-                                                  '${formDetailController.tableData.indexOf(row) + 1}'),
-                                              _buildImageCell(context, row),
-                                              _buildDataCell(
-                                                  row['image_title'] ??
-                                                      'No title'),
-                                              _buildDataCell(
-                                                  row['qr'] ?? 'No QR'),
-                                              _buildActionCell(
-                                                  context, row, entryId),
-                                            ],
-                                          ),
-                                        )
-                                        .toList(),
-                                  ],
-                                ),
-                              ),
+                          verticalInside: BorderSide(
+                            width: 1,
+                            color: Colors.black,
+                            style: BorderStyle.solid,
+                          ),
+                        ),
+                        children: [
+                          TableRow(
+                            decoration: BoxDecoration(
+                              color: Color.fromARGB(255, 215, 238, 151),
                             ),
+                            children: [
+                              _buildHeaderCell('No'),
+                              _buildHeaderCell('Image'),
+                              _buildHeaderCell('Image Title'),
+                              _buildHeaderCell('QR Code'),
+                              _buildHeaderCell('Actions'),
+                            ],
                           ),
                         ],
-                      );
-                    }),
-                  ),
-                ],
-              );
-            } else {
-              return Center(child: const Text('No data found.'));
-            }
-          },
+                      ),
+                    ),
+                    // Scrollable body
+                    Expanded(
+                      child: SingleChildScrollView(
+                        controller:
+                            formDetailController.verticalScrollControllerBody,
+                        child: SingleChildScrollView(
+                          controller: formDetailController
+                              .horizontalScrollControllerBody,
+                          scrollDirection: Axis.horizontal,
+                          child: Table(
+                            columnWidths: const {
+                              0: FixedColumnWidth(50.0),
+                              1: FixedColumnWidth(100.0),
+                              2: FixedColumnWidth(150.0),
+                              3: FixedColumnWidth(120.0),
+                              4: FixedColumnWidth(130.0),
+                              5: FixedColumnWidth(120.0),
+                            },
+                            border: TableBorder(
+                              horizontalInside: BorderSide(
+                                width: 1,
+                                color: Colors.black,
+                                style: BorderStyle.solid,
+                              ),
+                              verticalInside: BorderSide(
+                                width: 1,
+                                color: Colors.black,
+                                style: BorderStyle.solid,
+                              ),
+                            ),
+                            children: formDetailController.tableData.map(
+                              (row) {
+                                return TableRow(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                  ),
+                                  children: [
+                                    _buildDataCell(
+                                        '${formDetailController.tableData.indexOf(row) + 1}'),
+                                    _buildImageCell(
+                                        context, row), // This remains the same
+                                    _buildDataCell(row['image_title'] ??
+                                        'No title'), // Update to show image title
+                                    _buildDataCell(row['qrcode'] ??
+                                        'No QR'), // Update to show QR code
+                                    _buildActionCell(
+                                        context, row), // This remains the same
+                                  ],
+                                );
+                              },
+                            ).toList(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ),
+          ],
         ),
       ),
     );
@@ -202,9 +192,8 @@ class FormPageDetailView extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: Center(
         child: Text(
-          text.length > 20 ? '${text.substring(0, 20)}...' : text,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+          text, // Show the entire text without truncation
+          overflow: TextOverflow.visible,
         ),
       ),
     );
@@ -213,18 +202,9 @@ class FormPageDetailView extends StatelessWidget {
   Widget _buildImageCell(BuildContext context, Map<String, dynamic> row) {
     return GestureDetector(
       onTap: () {
-        String imagePath;
-        if (row['image'] is String) {
-          imagePath = row['image'];
-        } else if (row['image'] is File) {
-          imagePath = row['image'].path;
-        } else {
-          imagePath = '';
-        }
+        String imagePath = row['image'] ?? '';
         if (imagePath.isNotEmpty) {
-          // String baseUrl = 'https://saraka.kelaskita.site/storage/';
-          // String baseUrl = 'http://localhost:8000/storage/';
-          String baseUrl = 'https://09ec-182-2-165-215.ngrok-free.app/storage/';
+          String baseUrl = 'https://your-base-url.com/storage/';
           String imageUrl = baseUrl + imagePath;
           Get.dialog(
             Dialog(
@@ -270,15 +250,14 @@ class FormPageDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildActionCell(
-      BuildContext context, Map<String, dynamic> row, int entryId) {
+  Widget _buildActionCell(BuildContext context, Map<String, dynamic> row) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         DeleteMedia(
-            formDetailController: formDetailController,
-            row: row,
-            entryId: entryId)
+          formDetailController: formDetailController,
+          row: row,
+        )
       ],
     );
   }

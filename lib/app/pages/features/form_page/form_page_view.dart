@@ -75,18 +75,30 @@ class FormPageView extends StatelessWidget {
                     ),
                   ),
                   Obx(
-                    () => DropdownButton<String>(
-                      value: formController.selectedShift.value,
-                      items: ['1', '2', '3'].map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        formController.selectedShift.value = newValue!;
-                      },
-                    ),
+                    () {
+                      if (!['i', 'ii', 'iii']
+                          .contains(formController.selectedShift.value)) {
+                        formController.selectedShift.value = '';
+                      }
+
+                      return DropdownButton<String>(
+                        value: formController.selectedShift.value.isNotEmpty
+                            ? formController.selectedShift.value
+                            : null,
+                        items: ['i', 'ii', 'iii'].map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        hint: Text('Select Shift'),
+                        onChanged: (newValue) {
+                          if (newValue != null) {
+                            formController.selectedShift.value = newValue;
+                          }
+                        },
+                      );
+                    },
                   ),
                 ],
               ),
@@ -120,6 +132,7 @@ class FormPageView extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   formController.addRow();
+                  formController.postData2();
                 },
                 child: Text('Simpan'),
               ),
@@ -293,8 +306,9 @@ class FormPageView extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.visibility),
             onPressed: () {
-              int id = row['id'];
-              Get.toNamed(Routes.FORMDETAIL, arguments: id);
+              String id = row['id'].toString();
+              print("ID:$id");
+              Get.toNamed(Routes.FORMDETAIL, arguments: {'id': id});
             },
           ),
           IconButton(
