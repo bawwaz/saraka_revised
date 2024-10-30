@@ -18,7 +18,7 @@ class FormPageController extends GetxController {
   final TextEditingController shiftController = TextEditingController();
   final TextEditingController operatorController = TextEditingController();
 
-  var selectedShift = '1'.obs;
+  var selectedShift = '1'.obs; // Default to '1' to represent Roman numeral I
   late String username;
 
   // Scroll controllers for scroll synchronization
@@ -37,7 +37,6 @@ class FormPageController extends GetxController {
       if (data.isNotEmpty) {
         _setupScrollSync();
       } else {
-        // Optionally detach or reset controllers if there is no data
         horizontalScrollControllerHeader.jumpTo(0);
         horizontalScrollControllerBody.jumpTo(0);
       }
@@ -56,7 +55,6 @@ class FormPageController extends GetxController {
     super.onClose();
   }
 
-  // Function to synchronize horizontal scrolling
   void _setupScrollSync() {
     horizontalScrollControllerBody.addListener(() {
       if (horizontalScrollControllerHeader.offset !=
@@ -73,64 +71,6 @@ class FormPageController extends GetxController {
             .jumpTo(horizontalScrollControllerHeader.offset);
       }
     });
-  }
-
-  Future<void> _setCurrentOperator() async {
-    String currentUsername = await _getCurrentUserUsername();
-    operatorController.text = currentUsername;
-  }
-
-  Future<String> _getCurrentUserUsername() async {
-    return Future.value("CurrentUsername");
-  }
-
-  fetchData() async {
-    await getAllData();
-  }
-
-  bool isDuplicate() {
-    for (var row in tableData) {
-      if (row['product_code'] == kodeProdukController.text &&
-          row['batch_product'] == batchController.text &&
-          row['operator'].toLowerCase() ==
-              operatorController.text.toLowerCase()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  void addRow() async {
-    if (isDuplicate()) {
-      var existingRow = tableData.firstWhere(
-        (row) =>
-            row['product_code'] == kodeProdukController.text &&
-            row['batch_product'] == batchController.text &&
-            row['operator'].toLowerCase() ==
-                operatorController.text.toLowerCase(),
-        orElse: () => null!,
-      );
-
-      if (existingRow != null) {
-        kodeProdukController.clear();
-        namaProdukController.clear();
-        batchController.clear();
-        shiftController.clear();
-
-        int existingId = existingRow['id'];
-        Get.toNamed(Routes.FORMDETAIL, arguments: existingId);
-
-        Get.snackbar('Duplicate', 'This data already exists');
-      }
-    } else {
-      bool isSuccess = await postData2();
-      if (isSuccess) {
-        kodeProdukController.clear();
-        namaProdukController.clear();
-        batchController.clear();
-        shiftController.clear();
-      }
-    }
   }
 
   Future<void> getAllData() async {
@@ -178,30 +118,26 @@ class FormPageController extends GetxController {
   Future<bool> postData2() async {
     String id = selectedId.value;
     String batch = batchController.text;
-    String shift = selectedShift.value;
-    
+    String shift = selectedShift.value; // This will now be '1', '2', or '3'
     String opr = operatorController.text;
 
     String url = 'http://192.168.101.65/saraka/android/Data_InputFoto.php'
         '?id=$id&batch=$batch&Shift=$shift&Opr=$opr';
 
-    if (id.isNotEmpty &&
-        batch.isNotEmpty &&
-        shift.isNotEmpty &&
-        opr.isNotEmpty) {
+    if (id.isNotEmpty && batch.isNotEmpty && shift.isNotEmpty && opr.isNotEmpty) {
       try {
         final response = await http.get(Uri.parse(url));
 
         if (response.statusCode == 200) {
           print("id: $id");
-          print("operator: $opr");
+          print("opr: $opr");
           print('shift: $shift');
           print('batch: $batch');
           print('Data posted successfully: ${response.body}');
           batchController.clear();
           operatorController.clear();
           selectedId.value = '';
-          selectedShift.value = '';
+          selectedShift.value = ''; // Reset shift selection
           return true; // Return true for success
         } else {
           Get.snackbar('Error', 'Failed to post data: ${response.statusCode}');
@@ -214,6 +150,51 @@ class FormPageController extends GetxController {
     } else {
       Get.snackbar('Error', 'Please fill in all fields before saving.');
       return false; // Return false if fields are incomplete
+    }
+  }
+
+  bool isDuplicate() {
+    for (var row in tableData) {
+      if (row['product_code'] == kodeProdukController.text &&
+          row['batch_product'] == batchController.text &&
+          row['operator'].toLowerCase() ==
+              operatorController.text.toLowerCase()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void addRow() async {
+    if (isDuplicate()) {
+      var existingRow = tableData.firstWhere(
+        (row) =>
+            row['product_code'] == kodeProdukController.text &&
+            row['batch_product'] == batchController.text &&
+            row['operator'].toLowerCase() ==
+                operatorController.text.toLowerCase(),
+        orElse: () => null!,
+      );
+
+      if (existingRow != null) {
+        kodeProdukController.clear();
+        namaProdukController.clear();
+        batchController.clear();
+        shiftController.clear();
+
+        int existingId = existingRow['id'];
+        Get.toNamed(Routes.FORMDETAIL, arguments: existingId);
+
+        Get.snackbar('Duplicate', 'This data already exists');
+      }
+    } else {
+      bool isSuccess = await postData2();
+      if (isSuccess) {
+        kodeProdukController.clear();
+        namaProdukController.clear();
+        batchController.clear();
+        shiftController.clear();
+      }
     }
   }
 
@@ -294,14 +275,13 @@ class FormPageController extends GetxController {
             ),
           );
         } else {
-          Get.snackbar('Info', 'No data found for batch $batchProduct');
+          Get.snackbar('Error', 'No batch product found');
         }
       } else {
-        Get.snackbar('Error', 'Failed to search for batch data');
+        Get.snackbar('Error', 'Failed to fetch batch product data');
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to connect to server');
-      print('Error: $e');
+      Get.snackbar('Error', 'An error occurred while searching');
     } finally {
       isLoading(false);
     }

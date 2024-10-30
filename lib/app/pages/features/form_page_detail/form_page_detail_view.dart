@@ -37,30 +37,29 @@ class FormPageDetailView extends StatelessWidget {
           children: [
             Obx(() {
               return formDetailController.tableData.isNotEmpty
-                  ? DataContainer(
-                      data: formDetailController.tableData
-                          .first) // Pass first item in tableData for demonstration
+                  ? DataContainer(data: formDetailController.tableData.first)
                   : const Center(child: Text('No data available'));
             }),
             const Divider(height: 30, thickness: 1),
             GestureDetector(
               onTap: () => ScanQRDialog(context),
-              // formDetailController.pickImage(),
               child: AbsorbPointer(child: QrTextfield()),
             ),
             SizedBox(height: 10),
             GestureDetector(
               onTap: () => formDetailController.pickImage(),
-              //  ScanQRDialog(context),
               child: AbsorbPointer(child: CameraTextfield()),
             ),
             SizedBox(height: 10),
-            TambahButton(data: {
-              'process_date': formDetailController.fetchedItem!['process_date'],
-              'shift': formDetailController.fetchedItem!['shift'],
-              'batch_product':
-                  formDetailController.fetchedItem!['batch_product'],
-            }),
+            TambahButton(
+              data: {
+                'process_date':
+                    formDetailController.fetchedItem?['process_date'] ?? '',
+                'shift': formDetailController.fetchedItem?['shift'] ?? '',
+                'batch_product':
+                    formDetailController.fetchedItem?['batch_product'] ?? '',
+              },
+            ),
             const SizedBox(height: 20),
             Expanded(
               child: Obx(() {
@@ -110,7 +109,6 @@ class FormPageDetailView extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // Scrollable body
                     Expanded(
                       child: SingleChildScrollView(
                         controller:
@@ -140,27 +138,27 @@ class FormPageDetailView extends StatelessWidget {
                                 style: BorderStyle.solid,
                               ),
                             ),
-                            children: formDetailController.tableData.map(
-                              (row) {
-                                return TableRow(
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                  ),
-                                  children: [
-                                    _buildDataCell(
-                                        '${formDetailController.tableData.indexOf(row) + 1}'),
-                                    _buildImageCell(
-                                        context, row), // This remains the same
-                                    _buildDataCell(row['image_title'] ??
-                                        'No title'), // Update to show image title
-                                    _buildDataCell(row['qrcode'] ??
-                                        'No QR'), // Update to show QR code
-                                    _buildActionCell(
-                                        context, row), // This remains the same
-                                  ],
-                                );
-                              },
-                            ).toList(),
+                            children:
+                                formDetailController.tableData.where((row) {
+                              // Check if row has essential data; you can adjust the fields based on what defines "empty" for your rows
+                              return row['image_title'] != '' ||
+                                  row['qrcode'] != '';
+                            }).map((row) {
+                              return TableRow(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                ),
+                                children: [
+                                  _buildDataCell(
+                                      '${formDetailController.tableData.indexOf(row)}'),
+                                  _buildImageCell(context, row),
+                                  _buildDataCell(
+                                      row['image_title'] ?? 'No title'),
+                                  _buildDataCell(row['qrcode'] ?? 'No QR'),
+                                  _buildActionCell(context, row),
+                                ],
+                              );
+                            }).toList(),
                           ),
                         ),
                       ),
@@ -192,7 +190,8 @@ class FormPageDetailView extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: Center(
         child: Text(
-          text, // Show the entire text without truncation
+          text,
+          maxLines: 4,
           overflow: TextOverflow.visible,
         ),
       ),
@@ -201,53 +200,69 @@ class FormPageDetailView extends StatelessWidget {
 
   Widget _buildImageCell(BuildContext context, Map<String, dynamic> row) {
     return GestureDetector(
-      onTap: () {
-        String imagePath = row['image'] ?? '';
-        if (imagePath.isNotEmpty) {
-          String baseUrl = 'https://your-base-url.com/storage/';
-          String imageUrl = baseUrl + imagePath;
-          Get.dialog(
-            Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    height: 200,
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.fill,
+        onTap: () {
+          String imagePath = row['image_title'] ?? '';
+          print('Image path: $imagePath'); // Debugging line
+
+          if (imagePath.isNotEmpty) {
+            String baseUrl =
+                'http://192.168.101.65/saraka/view_image.php?image=';
+            String imageUrl = baseUrl + Uri.encodeComponent(imagePath) + ".jpg";
+
+            print('Generated image URL: $imageUrl'); // Debugging line
+
+            Get.dialog(
+              Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      height: 200,
+                      child: Image.network(
+                        imageUrl,
+                        fit: BoxFit.fill,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          print(
+                              'Image loading error: $error'); // Debugging line
+                          return const Center(
+                              child: Text('Failed to load image'));
+                        },
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Image Title: ${row['image_title'] ?? 'Unknown'}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'Size: ${(row['size'] != null ? (row['size'] / 1024).toStringAsFixed(2) : 'Unknown')} KB',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Image Title: ${row['image_title'] ?? 'Unknown'}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Size: ${(row['size'] != null ? (row['size'] / 1024).toStringAsFixed(2) : 'Unknown')} KB',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          );
-        } else {
-          Get.snackbar('Error', 'Invalid image URL or path');
-        }
-      },
-      child: row['image'] != null
-          ? Icon(Icons.remove_red_eye)
-          : const Text('No Image'),
-    );
+            );
+          } else {
+            Get.snackbar('Error', 'Invalid image URL or path');
+          }
+        },
+        child: row['image'] != null
+            ? Icon(Icons.remove_red_eye)
+            : Icon(Icons.remove_red_eye));
   }
 
   Widget _buildActionCell(BuildContext context, Map<String, dynamic> row) {
