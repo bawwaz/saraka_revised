@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:saraka_revised/app/pages/features/form_page/widget/batch_textfield.dart';
+import 'package:saraka_revised/app/pages/features/form_page/widget/delete_icon.dart';
+import 'package:saraka_revised/app/pages/features/form_page/widget/dropdown_button.dart';
+import 'package:saraka_revised/app/pages/features/form_page/widget/kode_produk_textfield.dart';
+import 'package:saraka_revised/app/pages/features/form_page/widget/nama_produk_textfield.dart';
+import 'package:saraka_revised/app/pages/features/form_page/widget/operator_textfield.dart';
+import 'package:saraka_revised/app/pages/features/form_page/widget/simpan_button.dart';
+import 'package:saraka_revised/app/pages/features/form_page/widget/view_icon.dart';
 import 'form_page_controller.dart';
 import 'package:saraka_revised/app/route/app_pages.dart';
 
@@ -13,25 +21,14 @@ class FormPageView extends StatelessWidget {
   FormPageView({Key? key}) : super(key: key);
 
   Future<void> _refreshPage() async {
-    await formController.fetchData();
-  }
+    // Optionally show a loading indicator or some feedback
+    await formController.getAllData();
 
-  @override
-  void initState() {
-    // Synchronize horizontal scroll between header and body
-    _horizontalScrollControllerBody.addListener(() {
-      _horizontalScrollControllerHeader
-          .jumpTo(_horizontalScrollControllerBody.offset);
-      print(
-          'Body is scrolling horizontally, offset: ${_horizontalScrollControllerBody.offset}');
-    });
-
-    _horizontalScrollControllerHeader.addListener(() {
-      _horizontalScrollControllerBody
-          .jumpTo(_horizontalScrollControllerHeader.offset);
-      print(
-          'Header is scrolling horizontally, offset: ${_horizontalScrollControllerHeader.offset}');
-    });
+    // Check if the data has changed or provide feedback if there's no new data
+    if (formController.tableData.isEmpty) {
+      // Optionally show a message indicating no new data
+      Get.snackbar('Info', 'No new data available');
+    }
   }
 
   @override
@@ -74,74 +71,19 @@ class FormPageView extends StatelessWidget {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
-                  Obx(
-                    () {
-                      if (!['i', 'ii', 'iii']
-                          .contains(formController.selectedShift.value)) {
-                        formController.selectedShift.value = '';
-                      }
-
-                      return DropdownButton<String>(
-                        value: formController.selectedShift.value.isNotEmpty
-                            ? formController.selectedShift.value
-                            : null,
-                        items: ['i', 'ii', 'iii'].map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        hint: Text('Select Shift'),
-                        onChanged: (newValue) {
-                          if (newValue != null) {
-                            formController.selectedShift.value = newValue;
-                          }
-                        },
-                      );
-                    },
-                  ),
+                  DropdownButtonWidget(),
                 ],
               ),
-              TextField(
-                controller: formController.operatorController,
-                decoration: InputDecoration(labelText: 'Operator'),
-              ),
-              TextField(
-                controller: formController.namaProdukController,
-                decoration: InputDecoration(labelText: 'Product Name'),
-              ),
-              TextField(
-                controller: formController.batchController,
-                decoration: InputDecoration(
-                  labelText: 'Batch Product',
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.search),
-                    onPressed: () {
-                      formController.searchBatchProduct(
-                          context); // Call the function when pressed
-                    },
-                  ),
-                ),
-              ),
-
-              TextField(
-                controller: formController.kodeProdukController,
-                decoration: InputDecoration(labelText: 'Product Code'),
-              ),
+              OperatorTextfield(),
+              NamaProdukTextfield(),
+              BatchTextfield(),
+              KodeProdukTextfield(),
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  formController.addRow();
-                  formController.postData2();
-                },
-                child: Text('Simpan'),
-              ),
+              SimpanButton(),
               SizedBox(height: 20),
-              // Sticky Header with Scrollable Body
               Expanded(
                 child: Column(
                   children: [
-                    // Horizontal scrollable header
                     SingleChildScrollView(
                       controller:
                           formController.horizontalScrollControllerHeader,
@@ -188,13 +130,11 @@ class FormPageView extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // Scrollable body
                     Expanded(
                       child: Obx(() {
                         if (formController.tableData.isEmpty) {
                           return Center(child: Text('No data available'));
                         }
-
                         return SingleChildScrollView(
                           controller:
                               formController.verticalScrollControllerBody,
@@ -227,7 +167,6 @@ class FormPageView extends StatelessWidget {
                                 ),
                               ),
                               children: [
-                                // Data rows
                                 ...formController.tableData
                                     .map(
                                       (row) => TableRow(
@@ -245,14 +184,12 @@ class FormPageView extends StatelessWidget {
                                           _buildDataCell(
                                               row['product_code'] ?? ''),
                                           _buildDataCell(
-                                              row['shift'].toString()),
+                                              _convertShift(row['shift'])),
                                           _buildDataCell(
                                             row['process_date'] != null
                                                 ? DateFormat('dd MMM yyyy')
-                                                    .format(
-                                                    DateTime.parse(
-                                                        row['process_date']),
-                                                  )
+                                                    .format(DateTime.parse(
+                                                        row['process_date']))
                                                 : 'N/A',
                                           ),
                                           _buildActionCell(context, row),
@@ -274,6 +211,33 @@ class FormPageView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _convertShift(dynamic shift) {
+    // Check if shift is already a Roman numeral
+    if (_isRomanNumeral(shift.toString())) {
+      return shift.toString(); // Return the shift as is if it's a Roman numeral
+    }
+
+    // Convert shift value to integer
+    int shiftInt = int.tryParse(shift.toString()) ?? 0;
+
+    switch (shiftInt) {
+      case 1:
+        return 'I'; // Roman numeral for 1
+      case 2:
+        return 'II'; // Roman numeral for 2
+      case 3:
+        return 'III'; // Roman numeral for 3
+      default:
+        return 'N/A'; // Return a default value for other cases
+    }
+  }
+
+  bool _isRomanNumeral(String shift) {
+    // Regular expression to match Roman numerals (I, II, III, IV, etc.)
+    final regex = RegExp(r'^(I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII)$');
+    return regex.hasMatch(shift);
   }
 
   Widget _buildHeaderCell(String label) {
@@ -303,47 +267,8 @@ class FormPageView extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          IconButton(
-            icon: Icon(Icons.visibility),
-            onPressed: () {
-              String id = row['id'].toString();
-              print("ID:$id");
-              Get.toNamed(Routes.FORMDETAIL, arguments: {'id': id});
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.delete),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text('Delete this item?'),
-                    actions: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              formController.deleteRow(row['id']);
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('Yes'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('No'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
+          ViewIcon(row: row),
+          DeleteIcon(row: row),
         ],
       ),
     );
