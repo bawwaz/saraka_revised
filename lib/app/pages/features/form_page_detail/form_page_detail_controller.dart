@@ -71,7 +71,6 @@ class FormPageDetailController extends GetxController {
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
 
-        // Only add rows where essential fields are not null or empty
         tableData.value = data
             .map((item) {
               return {
@@ -95,7 +94,6 @@ class FormPageDetailController extends GetxController {
           String bc = fetchedItem!['batch_product'];
           String shift = fetchedItem!['shift'];
 
-          // Fetch and append media data
           List<Map<String, dynamic>> mediaData =
               await fetchDataMedia(bc, shift);
           for (var media in mediaData) {
@@ -131,9 +129,17 @@ class FormPageDetailController extends GetxController {
         List<dynamic> jsonData = json.decode(response.body);
 
         // Remove any empty rows if present
-        return List<Map<String, dynamic>>.from(jsonData.where((item) => item
-            .values
-            .any((value) => value != null && value.toString().isNotEmpty)));
+        List<Map<String, dynamic>> filteredData =
+            List<Map<String, dynamic>>.from(
+          jsonData.where(
+            (item) => item.values.any(
+              (value) => value != null && value.toString().isNotEmpty,
+            ),
+          ),
+        );
+
+        // Reverse the list to display the newest data first
+        return filteredData.reversed.toList();
       } else {
         throw Exception('Failed to load media data');
       }

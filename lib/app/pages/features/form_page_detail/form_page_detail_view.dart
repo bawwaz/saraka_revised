@@ -42,7 +42,7 @@ class FormPageDetailView extends StatelessWidget {
             }),
             const Divider(height: 30, thickness: 1),
             GestureDetector(
-              onTap: () => ScanQRDialog(context),
+              onTap: () => showScanQRDialog(context),
               child: AbsorbPointer(child: QrTextfield()),
             ),
             SizedBox(height: 10),
@@ -138,27 +138,34 @@ class FormPageDetailView extends StatelessWidget {
                                 style: BorderStyle.solid,
                               ),
                             ),
-                            children:
-                                formDetailController.tableData.where((row) {
-                              // Check if row has essential data; you can adjust the fields based on what defines "empty" for your rows
-                              return row['image_title'] != '' ||
-                                  row['qrcode'] != '';
-                            }).map((row) {
-                              return TableRow(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                ),
-                                children: [
-                                  _buildDataCell(
-                                      '${formDetailController.tableData.indexOf(row)}'),
-                                  _buildImageCell(context, row),
-                                  _buildDataCell(
-                                      row['image_title'] ?? 'No title'),
-                                  _buildDataCell(row['qrcode'] ?? 'No QR'),
-                                  _buildActionCell(context, row),
-                                ],
-                              );
-                            }).toList(),
+                            children: formDetailController.tableData
+                                .where((row) {
+                                  return row['image_title'] != '' ||
+                                      row['qrcode'] != '';
+                                })
+                                .toList()
+                                .asMap()
+                                .entries
+                                .map((entry) {
+                                  int index = entry.key;
+                                  var row = entry.value;
+
+                                  return TableRow(
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                    ),
+                                    children: [
+                                      _buildDataCell(
+                                          '${formDetailController.tableData.length - formDetailController.tableData.indexOf(row)}'),
+                                      _buildImageCell(context, row),
+                                      _buildDataCell(
+                                          row['image_title'] ?? 'No title'),
+                                      _buildDataCell(row['qrcode'] ?? 'No QR'),
+                                      _buildActionCell(context, row),
+                                    ],
+                                  );
+                                })
+                                .toList(),
                           ),
                         ),
                       ),
@@ -200,69 +207,67 @@ class FormPageDetailView extends StatelessWidget {
 
   Widget _buildImageCell(BuildContext context, Map<String, dynamic> row) {
     return GestureDetector(
-        onTap: () {
-          String imagePath = row['image_title'] ?? '';
-          print('Image path: $imagePath'); // Debugging line
+      onTap: () {
+        String imagePath = row['image_title'] ?? '';
+        print('Image path: $imagePath'); // Debugging line
 
-          if (imagePath.isNotEmpty) {
-            String baseUrl =
-                'http://192.168.101.65/saraka/view_image.php?image=';
-            String imageUrl = baseUrl + Uri.encodeComponent(imagePath) + ".jpg";
+        if (imagePath.isNotEmpty) {
+          String baseUrl = 'http://192.168.101.65/saraka/view_image.php?image=';
+          String imageUrl = baseUrl + Uri.encodeComponent(imagePath) + ".jpg";
 
-            print('Generated image URL: $imageUrl'); // Debugging line
+          print('Generated image URL: $imageUrl'); // Debugging line
 
-            Get.dialog(
-              Dialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      height: 200,
-                      child: Image.network(
-                        imageUrl,
-                        fit: BoxFit.fill,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          print(
-                              'Image loading error: $error'); // Debugging line
-                          return const Center(
-                              child: Text('Failed to load image'));
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Image Title: ${row['image_title'] ?? 'Unknown'}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            'Size: ${(row['size'] != null ? (row['size'] / 1024).toStringAsFixed(2) : 'Unknown')} KB',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+          Get.dialog(
+            Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-            );
-          } else {
-            Get.snackbar('Error', 'Invalid image URL or path');
-          }
-        },
-        child: row['image'] != null
-            ? Icon(Icons.remove_red_eye)
-            : Icon(Icons.remove_red_eye));
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 200,
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.fill,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        print('Image loading error: $error'); // Debugging line
+                        return const Center(
+                            child: Text('Failed to load image'));
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Image Title: ${row['image_title'] ?? 'Unknown'}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Size: ${(row['size'] != null ? (row['size'] / 1024).toStringAsFixed(2) : 'Unknown')} KB',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        } else {
+          Get.snackbar('Error', 'Invalid image URL or path');
+        }
+      },
+      child: row['image'] != null
+          ? Icon(Icons.remove_red_eye)
+          : Icon(Icons.remove_red_eye),
+    );
   }
 
   Widget _buildActionCell(BuildContext context, Map<String, dynamic> row) {
