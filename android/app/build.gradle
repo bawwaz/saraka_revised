@@ -1,44 +1,44 @@
 plugins {
     id "com.android.application"
     id "kotlin-android"
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
-    id "dev.flutter.flutter-gradle-plugin"
+    id "dev.flutter.flutter-gradle-plugin" // Ensure this plugin is placed after Android and Kotlin
 }
 
 android {
     namespace = "com.example.saraka_revised"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    compileSdkVersion 34 // Explicitly define compile SDK version (update if necessary)
+    ndkVersion = "21.3.6528147" // Set to match your Flutter project NDK version
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8   // Changed from VERSION_17 to VERSION_23
-        targetCompatibility = JavaVersion.VERSION_1_8  // Changed from VERSION_17 to VERSION_23
+        sourceCompatibility JavaVersion.VERSION_1_8 // Use Java 8 for compatibility
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8  
+        jvmTarget = "1.8" // Match Kotlin version
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.saraka_revised"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdkVersion 21
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        minSdkVersion 21  // Minimum supported version
+        targetSdkVersion 33 // Set target SDK version to match your device compatibility
+        versionCode 1
+        versionName "1.0"
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            minifyEnabled true // Enable minification
+            shrinkResources true // Enable resource shrinking
+            signingConfig signingConfigs.debug // Use debug signing for now, replace for release builds
+        }
+        debug {
+            minifyEnabled false // Usually disabled in debug builds
+            shrinkResources false
         }
     }
 }
 
 flutter {
-    source = "../.."
+    source = "../.." // Flutter source configuration
 }
