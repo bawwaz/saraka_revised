@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPageController extends GetxController {
   var isLoading = false.obs;
-  var isPasswordHidden = true.obs; 
+  var isPasswordHidden = true.obs;
 
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -15,61 +15,59 @@ class LoginPageController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    autoLogin(); 
+    autoLogin();
   }
 
   void togglePasswordVisibility() {
     isPasswordHidden.value = !isPasswordHidden.value;
   }
 
-  Future<void> login() async {
-    String url = 'https://saraka.kelaskita.site/api/saraka-auth/login';
-    String usernameInput = usernameController.text;
-    String password = passwordController.text;
+  Future<void> login(String usernameInput, String passwordInput) async {
+  if (usernameInput.isEmpty || passwordInput.isEmpty) {
+    Get.snackbar('Error', 'Please enter both username and password.');
+    return;
+  }
 
-    if (usernameInput.isEmpty || password.isEmpty) {
-      Get.snackbar('Error', 'Please enter both username and password.');
-      return;
-    }
+  isLoading.value = true;
 
-    isLoading.value = true;
+  // Construct the URL with query parameters for username and password
+  String url =
+      'http://192.168.101.65/saraka/android/Data_Login.php?us=$usernameInput&ps=$passwordInput';
 
-    Map<String, String> body = {
-      'username': usernameInput,
-      'password': password,
-    };
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+    );
 
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {"Content-Type": "application/json"},
-        body: json.encode(body),
-      );
+    if (response.statusCode == 200) {
+      var data = response.body;
 
-      if (response.statusCode == 200) {
-        var data = json.decode(response.body);
-        String token = data['token'];
-        int userId = data['user']['id'];
-        String username = data['user']['username'];
-        
+      if (data == '1') {
+        // Successful login
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', token);
-        await prefs.setInt('userId', userId);
-        await prefs.setString('username', username);
+        await prefs.setString('username', usernameInput);
 
         Get.snackbar('Success', 'Login successful');
         Get.offAllNamed(Routes.FORM, arguments: {
-          'username': username
-        }); 
-      } else {
+          'username': usernameInput,
+        });
+      } else if (data == '2') {
+        // Invalid credentials
         Get.snackbar('Error', 'Invalid username or password');
+      } else {
+        // Unexpected response
+        Get.snackbar('Error', 'Unexpected response from the server');
       }
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to connect to the server');
-    } finally {
-      isLoading.value = false;
+    } else {
+      Get.snackbar('Error', 'Server error: ${response.statusCode}');
     }
+  } catch (e) {
+    Get.snackbar('Error', 'Failed to connect to the server');
+  } finally {
+    isLoading.value = false;
   }
+}
+
 
   Future<void> autoLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

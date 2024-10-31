@@ -45,7 +45,8 @@ class LoginPageView extends StatelessWidget {
                   ? CircularProgressIndicator()
                   : ElevatedButton(
                       onPressed: () {
-                        controller.login();
+                        controller.login(controller.usernameController.text,
+                            controller.passwordController.text);
                       },
                       child: Text('Login'),
                     ),
