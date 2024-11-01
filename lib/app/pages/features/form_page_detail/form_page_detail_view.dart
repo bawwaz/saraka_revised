@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:saraka_revised/app/pages/features/form_page_detail/widget/qr_dialog.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page_detail/widget/qr_dialog.dart';
 import 'form_page_detail_controller.dart';
 import './widget/camera_textfield.dart';
 import './widget/data_container.dart';
@@ -247,10 +247,6 @@ class FormPageDetailView extends StatelessWidget {
                       children: [
                         Text(
                           'Image Title: ${row['image_title'] ?? 'Unknown'}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'Size: ${(row['size'] != null ? (row['size'] / 1024).toStringAsFixed(2) : 'Unknown')} KB',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],

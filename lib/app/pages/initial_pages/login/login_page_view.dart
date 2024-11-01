@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:saraka_revised/app/pages/initial_pages/login/login_page_controller.dart';
-import 'package:saraka_revised/app/route/app_pages.dart';
+import 'package:saraka_foto_box/app/pages/initial_pages/login/login_page_controller.dart';
+import 'package:saraka_foto_box/app/route/app_pages.dart';
 
 class LoginPageView extends StatelessWidget {
   const LoginPageView({super.key});

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/batch_textfield.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/delete_icon.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/dropdown_button.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/kode_produk_textfield.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/nama_produk_textfield.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/operator_textfield.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/simpan_button.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/view_icon.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/batch_textfield.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/delete_icon.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/dropdown_button.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/kode_produk_textfield.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/nama_produk_textfield.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/operator_textfield.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/simpan_button.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/view_icon.dart';
 import 'form_page_controller.dart';
-import 'package:saraka_revised/app/route/app_pages.dart';
+import 'package:saraka_foto_box/app/route/app_pages.dart';
 
 class FormPageView extends StatelessWidget {
   final formController = Get.put(FormPageController());

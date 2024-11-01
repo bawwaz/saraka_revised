@@ -1,14 +1,14 @@
 import 'package:get/get.dart';
-import 'package:saraka_revised/app/pages/features/form_page/form_page_bindings.dart';
-import 'package:saraka_revised/app/pages/features/form_page/form_page_view.dart';
-import 'package:saraka_revised/app/pages/features/form_page_detail/form_page_detail_binding.dart';
-import 'package:saraka_revised/app/pages/features/form_page_detail/form_page_detail_view.dart';
-import 'package:saraka_revised/app/pages/features/profile_page/profile_page_binding.dart';
-import 'package:saraka_revised/app/pages/features/profile_page/profile_page_view.dart';
-import 'package:saraka_revised/app/pages/initial_pages/login/login_page_binding.dart';
-import 'package:saraka_revised/app/pages/initial_pages/login/login_page_view.dart';
-import 'package:saraka_revised/app/pages/initial_pages/splash_screen/splash_screen_binding.dart';
-import 'package:saraka_revised/app/pages/initial_pages/splash_screen/splash_screen_view.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/form_page_bindings.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/form_page_view.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page_detail/form_page_detail_binding.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page_detail/form_page_detail_view.dart';
+import 'package:saraka_foto_box/app/pages/features/profile_page/profile_page_binding.dart';
+import 'package:saraka_foto_box/app/pages/features/profile_page/profile_page_view.dart';
+import 'package:saraka_foto_box/app/pages/initial_pages/login/login_page_binding.dart';
+import 'package:saraka_foto_box/app/pages/initial_pages/login/login_page_view.dart';
+import 'package:saraka_foto_box/app/pages/initial_pages/splash_screen/splash_screen_binding.dart';
+import 'package:saraka_foto_box/app/pages/initial_pages/splash_screen/splash_screen_view.dart';
 
 part 'routes.dart';
 

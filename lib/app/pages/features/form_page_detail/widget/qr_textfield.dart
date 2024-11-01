@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:saraka_revised/app/pages/features/form_page_detail/form_page_detail_controller.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page_detail/form_page_detail_controller.dart';
 import 'package:get/get.dart';
 
 class QrTextfield extends StatelessWidget {

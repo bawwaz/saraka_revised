@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:saraka_revised/app/pages/features/form_page_detail/form_page_detail_controller.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page_detail/form_page_detail_controller.dart';
 
 class TambahButton extends StatelessWidget {
   final formDetailController = Get.put(FormPageDetailController());

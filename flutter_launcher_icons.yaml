@@ -1,0 +1,13 @@
+flutter_launcher_icons:
+  image_path: "assets/images/Logo_squared.png"
+  android: true  # Set this to true to enable Android icon generation
+  min_sdk_android: 21  # Set your minimum SDK version if needed
+  remove_alpha_channel_ios: true  # To avoid warnings if iOS is ever built
+
+  ios: false  # Disable iOS icon generation
+  web:
+    generate: false  # Disable web icon generation
+  windows:
+    generate: false  # Disable windows icon generation
+  macos:
+    generate: false  # Disable macOS icon generation
