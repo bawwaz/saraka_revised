@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:saraka_revised/app/pages/initial_pages/splash_screen/splash_screen_controller.dart';
+import 'package:saraka_foto_box/app/pages/initial_pages/splash_screen/splash_screen_controller.dart';
 
 class SplashScreenView extends StatelessWidget {
   const SplashScreenView({super.key});

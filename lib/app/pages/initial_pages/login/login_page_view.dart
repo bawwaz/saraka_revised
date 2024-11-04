@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:saraka_revised/app/pages/initial_pages/login/login_page_controller.dart';
-import 'package:saraka_revised/app/route/app_pages.dart';
+import 'package:saraka_foto_box/app/pages/initial_pages/login/login_page_controller.dart';
+import 'package:saraka_foto_box/app/route/app_pages.dart';
 
 class LoginPageView extends StatelessWidget {
   const LoginPageView({super.key});
@@ -11,14 +11,15 @@ class LoginPageView extends StatelessWidget {
     final LoginPageController controller = Get.put(LoginPageController());
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Saraka'),
-      ),
       body: Obx(() {
         return Container(
           margin: EdgeInsets.all(20),
           child: Column(
             children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 40.0),
+                child: Image.asset('assets/images/Logo (2).png'),
+              ),
               TextField(
                 controller: controller.usernameController,
                 decoration: InputDecoration(labelText: 'Username'),

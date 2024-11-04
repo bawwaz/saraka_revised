@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:saraka_revised/app/pages/features/form_page_detail/widget/qr_dialog.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page_detail/widget/qr_dialog.dart';
 import 'form_page_detail_controller.dart';
 import './widget/camera_textfield.dart';
 import './widget/data_container.dart';
@@ -20,19 +20,19 @@ class FormPageDetailView extends StatelessWidget {
           onPressed: () {
             Get.back();
           },
-          icon: Icon(
+          icon: const Icon(
             Icons.arrow_back_ios,
             color: Colors.white,
           ),
         ),
         title: const Text(
-          'Detail',
+          'Detail Foto Box',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: const Color.fromARGB(255, 63, 113, 65),
       ),
       body: Container(
-        margin: EdgeInsets.all(20),
+        margin: const EdgeInsets.all(20),
         child: Column(
           children: [
             Obx(() {
@@ -41,16 +41,13 @@ class FormPageDetailView extends StatelessWidget {
                   : const Center(child: Text('No data available'));
             }),
             const Divider(height: 30, thickness: 1),
-            GestureDetector(
-              onTap: () => showScanQRDialog(context),
-              child: AbsorbPointer(child: QrTextfield()),
-            ),
-            SizedBox(height: 10),
+            QrTextfield(),
+            const SizedBox(height: 10),
             GestureDetector(
               onTap: () => formDetailController.pickImage(),
               child: AbsorbPointer(child: CameraTextfield()),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             TambahButton(
               data: {
                 'process_date':
@@ -64,7 +61,7 @@ class FormPageDetailView extends StatelessWidget {
             Expanded(
               child: Obx(() {
                 if (formDetailController.tableData.isEmpty) {
-                  return Center(child: Text('No media available'));
+                  return const Center(child: Text('No media available'));
                 }
                 return Column(
                   children: [
@@ -81,7 +78,7 @@ class FormPageDetailView extends StatelessWidget {
                           4: FixedColumnWidth(130.0),
                           5: FixedColumnWidth(120.0),
                         },
-                        border: TableBorder(
+                        border: const TableBorder(
                           horizontalInside: BorderSide(
                             width: 1,
                             color: Colors.black,
@@ -95,7 +92,7 @@ class FormPageDetailView extends StatelessWidget {
                         ),
                         children: [
                           TableRow(
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: Color.fromARGB(255, 215, 238, 151),
                             ),
                             children: [
@@ -126,7 +123,7 @@ class FormPageDetailView extends StatelessWidget {
                               4: FixedColumnWidth(130.0),
                               5: FixedColumnWidth(120.0),
                             },
-                            border: TableBorder(
+                            border: const TableBorder(
                               horizontalInside: BorderSide(
                                 width: 1,
                                 color: Colors.black,
@@ -186,7 +183,7 @@ class FormPageDetailView extends StatelessWidget {
       child: Center(
         child: Text(
           label,
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -226,7 +223,7 @@ class FormPageDetailView extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    height: 200,
+                    height: 400,
                     child: Image.network(
                       imageUrl,
                       fit: BoxFit.fill,
@@ -235,7 +232,7 @@ class FormPageDetailView extends StatelessWidget {
                         return const Center(child: CircularProgressIndicator());
                       },
                       errorBuilder: (context, error, stackTrace) {
-                        print('Image loading error: $error'); // Debugging line
+                        print('Image loading error: $error'); 
                         return const Center(
                             child: Text('Failed to load image'));
                       },
@@ -247,10 +244,6 @@ class FormPageDetailView extends StatelessWidget {
                       children: [
                         Text(
                           'Image Title: ${row['image_title'] ?? 'Unknown'}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'Size: ${(row['size'] != null ? (row['size'] / 1024).toStringAsFixed(2) : 'Unknown')} KB',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],

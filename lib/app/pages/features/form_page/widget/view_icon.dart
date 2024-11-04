@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:saraka_revised/app/route/app_pages.dart';
+import 'package:saraka_foto_box/app/route/app_pages.dart';
 
 class ViewIcon extends StatelessWidget {
   final Map<String, dynamic> row; // Add a row parameter

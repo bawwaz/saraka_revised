@@ -1,14 +1,15 @@
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:saraka_revised/app/route/app_pages.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:saraka_foto_box/app/route/app_pages.dart';
 import 'dart:convert';
 
 class ProfilePageController extends GetxController {
+  final storage = GetStorage();
+
   Future<void> logout() async {
     try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? token = prefs.getString('token');
+      String? token = storage.read('token');
 
       if (token != null) {
         var response = await http.post(
@@ -22,7 +23,7 @@ class ProfilePageController extends GetxController {
         if (response.statusCode == 200) {
           var jsonResponse = json.decode(response.body);
           print("Logout successful: $jsonResponse");
-          await prefs.clear();
+          await storage.erase(); // Clear all data
           Get.offAllNamed(Routes.LOGIN);
         } else {
           print("Failed to logout: ${response.statusCode}");
@@ -34,10 +35,7 @@ class ProfilePageController extends GetxController {
   }
 
   Future<void> clearTokenAndLogout() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    await prefs.remove('token');
-    await prefs.remove('username');
-    Get.offAllNamed('/login');
+    await storage.erase(); // Clear all data
+    Get.offAllNamed(Routes.LOGIN);
   }
 }

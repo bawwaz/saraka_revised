@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:saraka_revised/app/pages/features/form_page_detail/form_page_detail_controller.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page_detail/form_page_detail_controller.dart';
 import 'package:get/get.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page_detail/widget/qr_dialog.dart';
 
 class QrTextfield extends StatelessWidget {
   final FormPageDetailController formDetailController =
@@ -19,15 +20,16 @@ class QrTextfield extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
-      readOnly: true,
+      readOnly: false,
       decoration: InputDecoration(
         labelText: 'Scan QR Code',
         border: const OutlineInputBorder(),
-        suffixIcon: const Icon(Icons.qr_code_scanner),
+        suffixIcon: InkWell(
+            onTap: () => showScanQRDialog(context),
+            child: const Icon(Icons.qr_code_scanner)),
       ),
       controller: qrController,
       onChanged: (value) {
-        // Update the observable variable whenever the text changes
         formDetailController.scannedQR.value = value;
       },
     );

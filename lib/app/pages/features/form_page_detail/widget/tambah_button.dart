@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:saraka_revised/app/pages/features/form_page_detail/form_page_detail_controller.dart';
-
+import 'package:saraka_foto_box/app/pages/features/form_page_detail/form_page_detail_controller.dart';
 class TambahButton extends StatelessWidget {
   final formDetailController = Get.put(FormPageDetailController());
   final Map<String, dynamic> data;
@@ -18,8 +17,7 @@ class TambahButton extends StatelessWidget {
             formDetailController.fetchedItem?['process_date'] ?? '';
         String shift = formDetailController.fetchedItem?['shift'] ?? '0';
         String batchProduct =
-            formDetailController.fetchedItem?['batch_product']?.toString() ??
-                '';
+            formDetailController.fetchedItem?['batch_product']?.toString() ?? '';
 
         String formattedDate = "00000000";
         if (processDate.isNotEmpty) {
@@ -45,15 +43,18 @@ class TambahButton extends StatelessWidget {
         String id = formDetailController.fetchedItem?['id'] ?? 'No ID';
         print({'id': id, 'nf': fileNumber, 'bc': qr});
 
-        if (formDetailController.pickedImage != null &&
+        if (formDetailController.pickedImage.value != null &&
             formDetailController.scannedQR.isNotEmpty) {
           await formDetailController.uploadImageFile(
-              formDetailController.pickedImage!, fileName);
+              formDetailController.pickedImage.value!, fileName);
           await formDetailController.postMedia(
             id: id,
             nf: fileNumber,
             bc: qr,
           );
+
+          // Update the image title observable
+          formDetailController.imageTitle.value = fileName;
 
           await formDetailController.fetchData(id);
 

@@ -10,7 +10,8 @@ import 'package:http/http.dart' as http;
 class FormPageDetailController extends GetxController {
   final picker = ImagePicker();
   var tableData = <Map<String, dynamic>>[].obs;
-  File? pickedImage;
+  var pickedImage = Rx<File?>(null);
+  var imageTitle = ''.obs;
   final ImagePicker _picker = ImagePicker();
   var mediaCount = 1.obs;
 
@@ -152,7 +153,14 @@ class FormPageDetailController extends GetxController {
   Future<void> pickImage() async {
     final XFile? image = await picker.pickImage(source: ImageSource.camera);
     if (image != null) {
-      pickedImage = await _processAndUploadImage(image);
+      pickedImage.value = await _processAndUploadImage(image);
+
+      String timestamp = DateFormat('yyyyMMdd').format(DateTime.now());
+
+      String shift = fetchedItem?['shift'] ?? 'UnknownShift';
+      String batchProduct = fetchedItem?['batch_product'] ?? 'UnknownBatch';
+
+      imageTitle.value = '$timestamp-$shift-$batchProduct.jpg';
     }
   }
 

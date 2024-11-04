@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/batch_textfield.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/delete_icon.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/dropdown_button.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/kode_produk_textfield.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/nama_produk_textfield.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/operator_textfield.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/simpan_button.dart';
-import 'package:saraka_revised/app/pages/features/form_page/widget/view_icon.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/batch_textfield.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/delete_icon.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/dropdown_button.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/kode_produk_textfield.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/nama_produk_textfield.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/operator_textfield.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/simpan_button.dart';
+import 'package:saraka_foto_box/app/pages/features/form_page/widget/view_icon.dart';
 import 'form_page_controller.dart';
-import 'package:saraka_revised/app/route/app_pages.dart';
+import 'package:saraka_foto_box/app/route/app_pages.dart';
 
 class FormPageView extends StatelessWidget {
   final formController = Get.put(FormPageController());
@@ -21,12 +21,8 @@ class FormPageView extends StatelessWidget {
   FormPageView({Key? key}) : super(key: key);
 
   Future<void> _refreshPage() async {
-    // Optionally show a loading indicator or some feedback
     await formController.getAllData();
-
-    // Check if the data has changed or provide feedback if there's no new data
     if (formController.tableData.isEmpty) {
-      // Optionally show a message indicating no new data
       Get.snackbar('Info', 'No new data available');
     }
   }
@@ -36,8 +32,8 @@ class FormPageView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 63, 113, 65),
-        title: Text(
-          'Saraka Form',
+        title: const Text(
+          'Entry Foto Box',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -47,7 +43,7 @@ class FormPageView extends StatelessWidget {
               onPressed: () {
                 Get.toNamed(Routes.PROFILE);
               },
-              icon: Icon(
+              icon: const Icon(
                 Icons.person,
                 color: Colors.white,
               ),
@@ -64,8 +60,8 @@ class FormPageView extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 20.0),
+                  const Padding(
+                    padding: EdgeInsets.only(right: 20.0),
                     child: Text(
                       'Shift',
                       style: TextStyle(fontWeight: FontWeight.bold),
@@ -78,9 +74,9 @@ class FormPageView extends StatelessWidget {
               NamaProdukTextfield(),
               BatchTextfield(),
               KodeProdukTextfield(),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               SimpanButton(),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Expanded(
                 child: Column(
                   children: [
@@ -99,7 +95,7 @@ class FormPageView extends StatelessWidget {
                           6: FixedColumnWidth(130.0),
                           7: FixedColumnWidth(120.0),
                         },
-                        border: TableBorder(
+                        border: const TableBorder(
                           horizontalInside: BorderSide(
                             width: 1,
                             color: Colors.black,
@@ -113,7 +109,7 @@ class FormPageView extends StatelessWidget {
                         ),
                         children: [
                           TableRow(
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: Color.fromARGB(255, 215, 238, 151),
                             ),
                             children: [
@@ -132,8 +128,12 @@ class FormPageView extends StatelessWidget {
                     ),
                     Expanded(
                       child: Obx(() {
+                        if (formController.isLoading.value) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
                         if (formController.tableData.isEmpty) {
-                          return Center(child: Text('No data available'));
+                          return const Center(child: Text('No data available'));
                         }
                         return SingleChildScrollView(
                           controller:
@@ -154,7 +154,7 @@ class FormPageView extends StatelessWidget {
                                 6: FixedColumnWidth(130.0),
                                 7: FixedColumnWidth(120.0),
                               },
-                              border: TableBorder(
+                              border: const TableBorder(
                                 horizontalInside: BorderSide(
                                   width: 1,
                                   color: Colors.black,
@@ -214,28 +214,23 @@ class FormPageView extends StatelessWidget {
   }
 
   String _convertShift(dynamic shift) {
-    // Check if shift is already a Roman numeral
     if (_isRomanNumeral(shift.toString())) {
-      return shift.toString(); // Return the shift as is if it's a Roman numeral
+      return shift.toString();
     }
-
-    // Convert shift value to integer
     int shiftInt = int.tryParse(shift.toString()) ?? 0;
-
     switch (shiftInt) {
       case 1:
-        return 'I'; // Roman numeral for 1
+        return 'I';
       case 2:
-        return 'II'; // Roman numeral for 2
+        return 'II';
       case 3:
-        return 'III'; // Roman numeral for 3
+        return 'III';
       default:
-        return 'N/A'; // Return a default value for other cases
+        return 'N/A';
     }
   }
 
   bool _isRomanNumeral(String shift) {
-    // Regular expression to match Roman numerals (I, II, III, IV, etc.)
     final regex = RegExp(r'^(I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII)$');
     return regex.hasMatch(shift);
   }
@@ -246,7 +241,7 @@ class FormPageView extends StatelessWidget {
       child: Center(
         child: Text(
           label,
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -268,7 +263,6 @@ class FormPageView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ViewIcon(row: row),
-          DeleteIcon(row: row),
         ],
       ),
     );

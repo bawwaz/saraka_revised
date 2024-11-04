@@ -5,7 +5,7 @@
     <!-- Add other permissions as necessary, like Camera, Location, etc. -->
 
     <application
-        android:label="saraka_revised"
+        android:label="Saraka Foto Box"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="true"
