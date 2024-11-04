@@ -20,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.saraka_revised"
-        minSdkVersion 21  // Minimum supported version
+        minSdkVersion 24  // Minimum supported version
         targetSdkVersion 33 // Set target SDK version to match your device compatibility
         versionCode 1
         versionName "1.0"
