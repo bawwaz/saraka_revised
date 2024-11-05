@@ -9,6 +9,8 @@ import 'package:saraka_foto_box/app/pages/features/form_page/widget/nama_produk_
 import 'package:saraka_foto_box/app/pages/features/form_page/widget/operator_textfield.dart';
 import 'package:saraka_foto_box/app/pages/features/form_page/widget/simpan_button.dart';
 import 'package:saraka_foto_box/app/pages/features/form_page/widget/view_icon.dart';
+import 'package:saraka_foto_box/app/style/color.dart';
+import 'package:saraka_foto_box/app/style/fonts.dart';
 import 'form_page_controller.dart';
 import 'package:saraka_foto_box/app/route/app_pages.dart';
 
@@ -31,10 +33,10 @@ class FormPageView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 63, 113, 65),
-        title: const Text(
+        backgroundColor: AppColors.primaryColor,
+        title: Text(
           'Entry Foto Box',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: Fonts.header,
         ),
         actions: [
           Padding(

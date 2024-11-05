@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:saraka_foto_box/app/style/color.dart';
 
 class DataContainer extends StatelessWidget {
   final Map<String, dynamic> data;
 
   const DataContainer({
     Key? key,
-    required this.data, 
+    required this.data,
   }) : super(key: key);
 
   @override
@@ -13,9 +14,8 @@ class DataContainer extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: const Color.fromARGB(255, 63, 107, 65),
-      ),
+          borderRadius: BorderRadius.circular(10),
+          color: AppColors.primaryColor),
       child: Table(
         columnWidths: const {
           0: IntrinsicColumnWidth(),

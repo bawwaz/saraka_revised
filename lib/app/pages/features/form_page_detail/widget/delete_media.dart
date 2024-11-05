@@ -14,7 +14,6 @@ class DeleteMedia extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Add mediaCount and fileNumber here
     int mediaCount = formDetailController.tableData.length + 1;
     String fileNumber = mediaCount.toString();
 
@@ -47,8 +46,8 @@ class DeleteMedia extends StatelessWidget {
                           vertical: 10, horizontal: 20),
                       child: Center(
                         child: TextButton(
-                          onPressed: () {
-                            formDetailController.deleteMedia(
+                          onPressed: () async {
+                            await formDetailController.deleteMedia(
                               id: formDetailController.fetchedItem?['id'],
                               nf: fileNumber,
                             );
