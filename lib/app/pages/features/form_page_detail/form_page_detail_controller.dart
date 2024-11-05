@@ -12,8 +12,13 @@ class FormPageDetailController extends GetxController {
   var tableData = <Map<String, dynamic>>[].obs;
   var pickedImage = Rx<File?>(null);
   var imageTitle = ''.obs;
+  var isLoading = false.obs;
   final ImagePicker _picker = ImagePicker();
   var mediaCount = 1.obs;
+  var torchOn = false.obs;
+  var currentZoom = 4.0.obs;
+  var previousZoom = 1.0.obs;
+  var mediaUpdated = false.obs;
 
   var scannedQR = ''.obs;
   Map<String, dynamic>? fetchedItem;
@@ -44,6 +49,10 @@ class FormPageDetailController extends GetxController {
     horizontalScrollControllerBody.dispose();
     verticalScrollControllerBody.dispose();
     super.onClose();
+  }
+
+  void toggleTorch() {
+    torchOn.value = !torchOn.value;
   }
 
   void _setupScrollSync() {
@@ -151,16 +160,23 @@ class FormPageDetailController extends GetxController {
   }
 
   Future<void> pickImage() async {
-    final XFile? image = await picker.pickImage(source: ImageSource.camera);
-    if (image != null) {
-      pickedImage.value = await _processAndUploadImage(image);
+    isLoading.value = true; // Start the loading animation
+    try {
+      final XFile? image = await picker.pickImage(source: ImageSource.camera);
+      if (image != null) {
+        // Process and upload the image
+        pickedImage.value = await _processAndUploadImage(image);
 
-      String timestamp = DateFormat('yyyyMMdd').format(DateTime.now());
-
-      String shift = fetchedItem?['shift'] ?? 'UnknownShift';
-      String batchProduct = fetchedItem?['batch_product'] ?? 'UnknownBatch';
-
-      imageTitle.value = '$timestamp-$shift-$batchProduct.jpg';
+        // Generate the file name
+        String timestamp = DateFormat('yyyyMMdd').format(DateTime.now());
+        String shift = fetchedItem?['shift'] ?? 'UnknownShift';
+        String batchProduct = fetchedItem?['batch_product'] ?? 'UnknownBatch';
+        imageTitle.value = '$timestamp-$shift-$batchProduct.jpg';
+      }
+    } catch (e) {
+      print("Image picking error: $e");
+    } finally {
+      isLoading.value = false; // Stop the loading animation
     }
   }
 
@@ -173,6 +189,11 @@ class FormPageDetailController extends GetxController {
       img.Image resizedImage = img.copyResize(decodedImage, width: 1024);
 
       var font = img.arial24;
+
+      num r = 0;
+      num g = 0;
+      num b = 139;
+
       String dateTimeString =
           DateFormat('dd MMM yyyy HH:mm:ss').format(DateTime.now());
       String batchProduct = fetchedItem?['batch_product'] ?? 'unknown';
@@ -181,17 +202,28 @@ class FormPageDetailController extends GetxController {
       String productNameText = fetchedItem?['product_name'] ?? 'Unknown';
 
       img.drawString(resizedImage, 'PT Saraka Mandiri Semesta, $dateTimeString',
-          font: font, x: 10, y: resizedImage.height - 50);
-      img.drawString(resizedImage, 'Operator: $operatorText',
-          font: font, x: 10, y: 50);
-      img.drawString(resizedImage, 'Shift: $shiftText',
-          font: font, x: 10, y: 100);
-      img.drawString(resizedImage, 'Product: ($batchProduct)',
-          font: font, x: 10, y: 150);
-      img.drawString(resizedImage, productNameText,
-          font: font, x: 10 + (productNameText.length * 8), y: 150);
+          font: font,
+          x: 10,
+          y: resizedImage.height - 50,
+          color: img.ColorFloat32.rgb(r, g, b));
 
-      // Compress image iteratively until below 250KB
+      img.drawString(
+        resizedImage,
+        'Operator: $operatorText',
+        font: font,
+        x: 10,
+        y: 50,
+        color: img.ColorFloat32.rgb(r, g, b),
+      );
+      img.drawString(resizedImage, 'Shift: $shiftText',
+          font: font, x: 10, y: 100, color: img.ColorFloat32.rgb(r, g, b));
+      img.drawString(resizedImage, 'Product: ($batchProduct)',
+          font: font, x: 10, y: 150, color: img.ColorFloat32.rgb(r, g, b));
+      img.drawString(resizedImage, productNameText,
+          font: font,
+          x: 10 + (productNameText.length * 10),
+          y: 150,
+          color: img.ColorFloat32.rgb(r, g, b));
       int quality = 90;
       List<int> compressedBytes;
       do {
@@ -259,6 +291,8 @@ class FormPageDetailController extends GetxController {
       if (response.statusCode == 200) {
         print('$url?id=$id&nf=$nf');
         Get.snackbar('Success', 'Deleted');
+
+        mediaUpdated.value = !mediaUpdated.value;
       } else {
         print('failed');
         print(response.body);

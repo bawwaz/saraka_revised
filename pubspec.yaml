@@ -21,6 +21,7 @@ dependencies:
   shared_preferences: any
   get_storage: any
   data_table_2: ^2.5.15
+  google_fonts:
   flutter_launcher_icons:
 
 flutter_launcher_icons:

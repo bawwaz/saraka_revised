@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:saraka_foto_box/app/pages/features/form_page_detail/form_page_detail_controller.dart';
+
 class TambahButton extends StatelessWidget {
   final formDetailController = Get.put(FormPageDetailController());
   final Map<String, dynamic> data;
@@ -17,7 +18,8 @@ class TambahButton extends StatelessWidget {
             formDetailController.fetchedItem?['process_date'] ?? '';
         String shift = formDetailController.fetchedItem?['shift'] ?? '0';
         String batchProduct =
-            formDetailController.fetchedItem?['batch_product']?.toString() ?? '';
+            formDetailController.fetchedItem?['batch_product']?.toString() ??
+                '';
 
         String formattedDate = "00000000";
         if (processDate.isNotEmpty) {
@@ -33,7 +35,7 @@ class TambahButton extends StatelessWidget {
 
         String romanShift = formDetailController.romanNumeral(shift).toString();
 
-        int mediaCount = formDetailController.tableData.length + 1;
+        int mediaCount = formDetailController.tableData.length;
         String fileNumber = mediaCount.toString();
         String fileName = '$formattedDate-$shift-$batchProduct-$mediaCount.jpg';
 
@@ -53,11 +55,8 @@ class TambahButton extends StatelessWidget {
             bc: qr,
           );
 
-          // Update the image title observable
-          formDetailController.imageTitle.value = fileName;
-
+          formDetailController.imageTitle.value = '';
           await formDetailController.fetchData(id);
-
           Get.snackbar(
               'Success', 'Data added successfully and page refreshed!');
         } else {

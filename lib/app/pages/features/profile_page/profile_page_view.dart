@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:saraka_foto_box/app/style/color.dart';
+import 'package:saraka_foto_box/app/style/fonts.dart';
 import 'profile_page_controller.dart';
 
 class ProfilePageView extends StatelessWidget {
@@ -16,10 +18,19 @@ class ProfilePageView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 63, 113, 65),
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+            onPressed: () {
+              Get.back();
+            },
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.white,
+            )),
+        backgroundColor: AppColors.primaryColor,
         title: Text(
           'Information',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: Fonts.header,
         ),
       ),
       body: Container(
@@ -33,7 +44,7 @@ class ProfilePageView extends StatelessWidget {
             TextField(
               readOnly: true,
               decoration: InputDecoration(
-                hintText: 'User : $username', // Display the username
+                hintText: 'User : $username',
               ),
             ),
           ],

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:saraka_foto_box/app/pages/features/form_page_detail/widget/qr_dialog.dart';
+import 'package:saraka_foto_box/app/style/color.dart';
+import 'package:saraka_foto_box/app/style/fonts.dart';
 import 'form_page_detail_controller.dart';
 import './widget/camera_textfield.dart';
 import './widget/data_container.dart';
@@ -25,11 +27,11 @@ class FormPageDetailView extends StatelessWidget {
             color: Colors.white,
           ),
         ),
-        title: const Text(
+        title: Text(
           'Detail Foto Box',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: Fonts.header,
         ),
-        backgroundColor: const Color.fromARGB(255, 63, 113, 65),
+        backgroundColor: AppColors.primaryColor,
       ),
       body: Container(
         margin: const EdgeInsets.all(20),
@@ -146,7 +148,6 @@ class FormPageDetailView extends StatelessWidget {
                                 .map((entry) {
                                   int index = entry.key;
                                   var row = entry.value;
-
                                   return TableRow(
                                     decoration: BoxDecoration(
                                       color: Colors.grey[200],
@@ -210,7 +211,7 @@ class FormPageDetailView extends StatelessWidget {
 
         if (imagePath.isNotEmpty) {
           String baseUrl = 'http://192.168.101.65/saraka/view_image.php?image=';
-          String imageUrl = baseUrl + Uri.encodeComponent(imagePath) + ".jpg";
+          String imageUrl = "$baseUrl${Uri.encodeComponent(imagePath)}.jpg";
 
           print('Generated image URL: $imageUrl'); // Debugging line
 
@@ -232,7 +233,7 @@ class FormPageDetailView extends StatelessWidget {
                         return const Center(child: CircularProgressIndicator());
                       },
                       errorBuilder: (context, error, stackTrace) {
-                        print('Image loading error: $error'); 
+                        print('Image loading error: $error');
                         return const Center(
                             child: Text('Failed to load image'));
                       },
