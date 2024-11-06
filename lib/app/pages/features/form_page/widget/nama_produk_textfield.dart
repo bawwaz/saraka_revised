@@ -10,6 +10,7 @@ class NamaProdukTextfield extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      readOnly: true,
       controller: formController.namaProdukController,
       decoration: InputDecoration(labelText: 'Product Name'),
     );

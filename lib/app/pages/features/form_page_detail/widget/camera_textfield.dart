@@ -11,6 +11,10 @@ class CameraTextfield extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       return TextField(
+        readOnly: true, // Make text field read-only
+        onTap: () async {
+          await formDetailController.pickImage(); // Call pickImage on tap
+        },
         decoration: InputDecoration(
           labelText: formDetailController.imageTitle.value.isNotEmpty
               ? formDetailController.imageTitle.value

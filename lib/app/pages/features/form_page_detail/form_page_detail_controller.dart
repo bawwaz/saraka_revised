@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
@@ -36,10 +38,16 @@ class FormPageDetailController extends GetxController {
     verticalScrollControllerBody.addListener(() {
       isTableScrolling.value = verticalScrollControllerBody.position.pixels > 0;
     });
+    final String? id = Get.arguments is int
+        ? Get.arguments.toString() // Directly use the integer as a string
+        : Get.arguments is Map && Get.arguments['id'] != null
+            ? Get.arguments['id'].toString() // Access ID from map
+            : null;
 
-    final String? id = Get.arguments['id'];
     if (id != null) {
       fetchData(id);
+    } else {
+      print('ID argument not provided or invalid format');
     }
   }
 
@@ -159,36 +167,53 @@ class FormPageDetailController extends GetxController {
     }
   }
 
+  Future<void> requestPermissions() async {
+    // Request camera and storage permissions
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.camera,
+      Permission.storage,
+    ].request();
+
+    // Check if any permissions were permanently denied
+    if (statuses[Permission.camera]!.isPermanentlyDenied ||
+        statuses[Permission.storage]!.isPermanentlyDenied) {
+      print(
+          'Permissions permanently denied. Please enable them in app settings.');
+    }
+  }
+
   Future<void> pickImage() async {
-    isLoading.value = true; // Start the loading animation
+    await requestPermissions();
+    isLoading.value = true;
     try {
       final XFile? image = await picker.pickImage(source: ImageSource.camera);
       if (image != null) {
-        // Process and upload the image
         pickedImage.value = await _processAndUploadImage(image);
 
-        // Generate the file name
+        // Generate a unique file name based on timestamp and fetched data
         String timestamp = DateFormat('yyyyMMdd').format(DateTime.now());
         String shift = fetchedItem?['shift'] ?? 'UnknownShift';
         String batchProduct = fetchedItem?['batch_product'] ?? 'UnknownBatch';
         imageTitle.value = '$timestamp-$shift-$batchProduct.jpg';
+      } else {
+        print("No image selected.");
       }
     } catch (e) {
       print("Image picking error: $e");
     } finally {
-      isLoading.value = false; // Stop the loading animation
+      isLoading.value = false; // Stop loading animation
     }
   }
 
   Future<File?> _processAndUploadImage(XFile imageFile) async {
-    final image = File(imageFile.path);
-    final bytes = await image.readAsBytes();
-    img.Image? decodedImage = img.decodeImage(bytes);
+    try {
+      final image = File(imageFile.path);
+      final bytes = await image.readAsBytes();
+      img.Image? decodedImage = img.decodeImage(bytes);
+      if (decodedImage == null) return null;
 
-    if (decodedImage != null) {
       img.Image resizedImage = img.copyResize(decodedImage, width: 1024);
-
-      var font = img.arial24;
+      final font = img.arial24;
 
       num r = 0;
       num g = 0;
@@ -201,11 +226,14 @@ class FormPageDetailController extends GetxController {
       String shiftText = fetchedItem?['shift'] ?? 'Unknown';
       String productNameText = fetchedItem?['product_name'] ?? 'Unknown';
 
-      img.drawString(resizedImage, 'PT Saraka Mandiri Semesta, $dateTimeString',
-          font: font,
-          x: 10,
-          y: resizedImage.height - 50,
-          color: img.ColorFloat32.rgb(r, g, b));
+      img.drawString(
+        resizedImage,
+        'PT Saraka Mandiri Semesta, $dateTimeString',
+        font: font,
+        x: 10,
+        y: resizedImage.height - 50,
+        color: img.ColorFloat32.rgb(r, g, b),
+      );
 
       img.drawString(
         resizedImage,
@@ -215,15 +243,24 @@ class FormPageDetailController extends GetxController {
         y: 50,
         color: img.ColorFloat32.rgb(r, g, b),
       );
-      img.drawString(resizedImage, 'Shift: $shiftText',
-          font: font, x: 10, y: 100, color: img.ColorFloat32.rgb(r, g, b));
-      img.drawString(resizedImage, 'Product: ($batchProduct)',
-          font: font, x: 10, y: 150, color: img.ColorFloat32.rgb(r, g, b));
-      img.drawString(resizedImage, productNameText,
-          font: font,
-          x: 10 + (productNameText.length * 10),
-          y: 150,
-          color: img.ColorFloat32.rgb(r, g, b));
+      img.drawString(
+        resizedImage,
+        'Shift: $shiftText',
+        font: font,
+        x: 10,
+        y: 100,
+        color: img.ColorFloat32.rgb(r, g, b),
+      );
+      img.drawString(
+        resizedImage,
+        'Product: ($batchProduct)',
+        font: font,
+        x: 10,
+        y: 150,
+        color: img.ColorFloat32.rgb(r, g, b),
+      );
+
+      // Manage compression
       int quality = 90;
       List<int> compressedBytes;
       do {
@@ -235,30 +272,40 @@ class FormPageDetailController extends GetxController {
       String fileName =
           '$formattedDate-$shiftText-$batchProduct-${mediaCount.value}.jpg';
 
+      // Save compressed image and upload
       final renamedImage = File('${image.parent.path}/$fileName')
         ..writeAsBytesSync(compressedBytes);
       mediaCount.value++;
-
-      await postMedia(id: 'sampleID', nf: fileName, bc: scannedQR.value);
+      await uploadImageFile(renamedImage, fileName);
 
       return renamedImage;
+    } catch (e) {
+      print("Error during image processing: $e");
+      return null;
     }
-    return null;
   }
 
   Future<void> uploadImageFile(File imageFile, String fileName) async {
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('http://192.168.101.65/saraka/upload.php'),
-    );
-    request.files.add(await http.MultipartFile.fromPath('file', imageFile.path,
-        filename: fileName));
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('http://192.168.101.65/saraka/upload.php'),
+      );
+      request.files.add(await http.MultipartFile.fromPath(
+          'file', imageFile.path,
+          filename: fileName));
 
-    final response = await request.send();
-    if (response.statusCode == 200) {
-      print('Image uploaded successfully: $fileName');
-    } else {
-      print('Failed to upload image. Status code: ${response.statusCode}');
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        print('Image uploaded successfully: $fileName');
+
+        await DefaultCacheManager().emptyCache();
+        print('Image cache cleared');
+      } else {
+        print('Failed to upload image. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print("Image upload error: $e");
     }
   }
 
