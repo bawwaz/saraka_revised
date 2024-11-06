@@ -7,10 +7,12 @@ import 'package:saraka_foto_box/app/api/api_endpoint.dart';
 import 'package:saraka_foto_box/app/route/app_pages.dart';
 
 class FormPageController extends GetxController {
+  var isPosting = false.obs;
+
   var tableData = <Map<String, dynamic>>[].obs;
   var isLoading = false.obs;
   var isTableScrolling = false.obs;
-  var selectedId = ''.obs;
+  var selectedId = 0.obs;
 
   final TextEditingController kodeProdukController = TextEditingController();
   final TextEditingController namaProdukController = TextEditingController();
@@ -18,10 +20,9 @@ class FormPageController extends GetxController {
   final TextEditingController shiftController = TextEditingController();
   final TextEditingController operatorController = TextEditingController();
 
-  var selectedShift = '1'.obs; // Default to '1' to represent Roman numeral I
+  var selectedShift = '1'.obs;
   late String username;
 
-  // Scroll controllers for scroll synchronization
   final ScrollController horizontalScrollControllerHeader = ScrollController();
   final ScrollController horizontalScrollControllerBody = ScrollController();
   final ScrollController verticalScrollControllerBody = ScrollController();
@@ -75,13 +76,12 @@ class FormPageController extends GetxController {
 
   Future<void> getAllData() async {
     String url = "http://192.168.101.65/saraka/android/Data_Vw_FotoBox.php";
-    isLoading.value = true; // Start loading
+    isLoading.value = true;
 
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         List<dynamic> fetchedData = json.decode(response.body);
-
         List<Map<String, dynamic>> sortedData =
             await _sortDataInIsolate(fetchedData);
         tableData.value = sortedData;
@@ -89,12 +89,9 @@ class FormPageController extends GetxController {
         Get.snackbar('Success', 'Data fetched and sorted successfully');
       } else {
         Get.snackbar('Error', 'Failed to fetch data');
-        print('Failed with status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
       }
     } catch (e) {
       Get.snackbar('Error', 'Failed to connect to server');
-      print('Error: $e');
     } finally {
       isLoading.value = false;
     }
@@ -102,7 +99,7 @@ class FormPageController extends GetxController {
 
   Future<List<Map<String, dynamic>>> _sortDataInIsolate(
       List<dynamic> fetchedData) async {
-    final response = await Isolate.run(() {
+    return await Isolate.run(() {
       List<Map<String, dynamic>> sortedData =
           List<Map<String, dynamic>>.from(fetchedData);
       sortedData.sort((a, b) {
@@ -112,33 +109,34 @@ class FormPageController extends GetxController {
       });
       return sortedData;
     });
-    return response;
   }
 
   Future<bool> postData2() async {
-    String id = selectedId.value;
+    if (isPosting.value) return false;
+
+    isPosting.value = true;
+
+    String id = selectedId.value.toString();
     String batch = batchController.text;
-    String shift = selectedShift.value; // This will now be '1', '2', or '3'
+    String shift = selectedShift.value;
     String opr = operatorController.text;
 
     String url = 'http://192.168.101.65/saraka/android/Data_InputFoto.php'
         '?id=$id&batch=$batch&Shift=$shift&Opr=$opr';
 
-    if (id.isNotEmpty && batch.isNotEmpty && shift.isNotEmpty && opr.isNotEmpty) {
+    if (id.isNotEmpty &&
+        batch.isNotEmpty &&
+        shift.isNotEmpty &&
+        opr.isNotEmpty) {
       try {
         final response = await http.get(Uri.parse(url));
 
         if (response.statusCode == 200) {
-          print("id: $id");
-          print("opr: $opr");
-          print('shift: $shift');
-          print('batch: $batch');
-          print('Data posted successfully: ${response.body}');
           batchController.clear();
           operatorController.clear();
-          selectedId.value = '';
-          selectedShift.value = ''; // Reset shift selection
-          return true; // Return true for success
+          selectedId.value = 0;
+          selectedShift.value = '1';
+          return true;
         } else {
           Get.snackbar('Error', 'Failed to post data: ${response.statusCode}');
           return false;
@@ -146,55 +144,23 @@ class FormPageController extends GetxController {
       } catch (e) {
         Get.snackbar('Error', 'An error occurred: $e');
         return false;
+      } finally {
+        isPosting.value = false;
       }
     } else {
-      Get.snackbar('Error', 'Please fill in all fields before saving.');
-      return false; // Return false if fields are incomplete
+      Get.snackbar('Error', 'All fields are required');
+      isPosting.value = false;
+      return false;
     }
-  }
-
-  bool isDuplicate() {
-    for (var row in tableData) {
-      if (row['product_code'] == kodeProdukController.text &&
-          row['batch_product'] == batchController.text &&
-          row['operator'].toLowerCase() ==
-              operatorController.text.toLowerCase()) {
-        return true;
-      }
-    }
-    return false;
   }
 
   void addRow() async {
-    if (isDuplicate()) {
-      var existingRow = tableData.firstWhere(
-        (row) =>
-            row['product_code'] == kodeProdukController.text &&
-            row['batch_product'] == batchController.text &&
-            row['operator'].toLowerCase() ==
-                operatorController.text.toLowerCase(),
-        orElse: () => null!,
-      );
-
-      if (existingRow != null) {
-        kodeProdukController.clear();
-        namaProdukController.clear();
-        batchController.clear();
-        shiftController.clear();
-
-        int existingId = existingRow['id'];
-        Get.toNamed(Routes.FORMDETAIL, arguments: existingId);
-
-        Get.snackbar('Duplicate', 'This data already exists');
-      }
-    } else {
-      bool isSuccess = await postData2();
-      if (isSuccess) {
-        kodeProdukController.clear();
-        namaProdukController.clear();
-        batchController.clear();
-        shiftController.clear();
-      }
+    bool isSuccess = await postData2();
+    if (isSuccess) {
+      kodeProdukController.clear();
+      namaProdukController.clear();
+      batchController.clear();
+      shiftController.clear();
     }
   }
 
@@ -209,12 +175,9 @@ class FormPageController extends GetxController {
         Get.snackbar('Success', 'Row deleted successfully');
       } else {
         Get.snackbar('Error', 'Failed to delete row');
-        print('Failed with status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
       }
     } catch (e) {
       Get.snackbar('Error', 'Failed to connect to server');
-      print('Error: $e');
     } finally {
       isLoading.value = false;
     }
@@ -237,7 +200,6 @@ class FormPageController extends GetxController {
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
-
         var exactMatches =
             data.where((item) => item['Batch_Brg'] == batchProduct).toList();
 
@@ -253,7 +215,6 @@ class FormPageController extends GetxController {
               ),
               padding: EdgeInsets.all(16),
               child: SingleChildScrollView(
-                // Make the content scrollable
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: exactMatches.map<Widget>((item) {
@@ -262,7 +223,7 @@ class FormPageController extends GetxController {
                       subtitle: Text(
                           'Code: ${item['Kd_Brg']}\nBatch: ${item['Batch_Brg']}\nExpiry: ${item['ED_Brg']}\nID: ${item['ID']}'),
                       onTap: () {
-                        selectedId.value = item['ID'];
+                        selectedId.value = int.tryParse(item['ID'] ?? '0') ?? 0;
                         namaProdukController.text = item['Nm_Brg'];
                         kodeProdukController.text = item['Kd_Brg'];
                         batchController.text = item['Batch_Brg'];

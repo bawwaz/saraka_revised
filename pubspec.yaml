@@ -13,6 +13,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   get: any
   mobile_scanner: any
+  permission_handler:
   intl: any
   http: any
   image_picker: any
@@ -22,7 +23,9 @@ dependencies:
   get_storage: any
   data_table_2: ^2.5.15
   google_fonts:
+  flutter_cache_manager:
   flutter_launcher_icons:
+  cached_network_image: ^3.4.1
 
 flutter_launcher_icons:
   android: "launcher_icon"

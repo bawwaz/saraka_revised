@@ -10,9 +10,9 @@ class KodeProdukTextfield extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      readOnly: true,
       controller: formController.kodeProdukController,
       decoration: InputDecoration(labelText: 'Product Code'),
     );
-    
   }
 }
