@@ -189,8 +189,6 @@ class FormPageDetailController extends GetxController {
       final XFile? image = await picker.pickImage(source: ImageSource.camera);
       if (image != null) {
         pickedImage.value = await _processAndUploadImage(image);
-
-        // Generate a unique file name based on timestamp and fetched data
         String timestamp = DateFormat('yyyyMMdd').format(DateTime.now());
         String shift = fetchedItem?['shift'] ?? 'UnknownShift';
         String batchProduct = fetchedItem?['batch_product'] ?? 'UnknownBatch';
@@ -201,7 +199,7 @@ class FormPageDetailController extends GetxController {
     } catch (e) {
       print("Image picking error: $e");
     } finally {
-      isLoading.value = false; // Stop loading animation
+      isLoading.value = false;
     }
   }
 
@@ -259,8 +257,12 @@ class FormPageDetailController extends GetxController {
         y: 150,
         color: img.ColorFloat32.rgb(r, g, b),
       );
+      img.drawString(resizedImage, productNameText,
+          font: font,
+          x: 10 + (productNameText.length * 10),
+          y: 150,
+          color: img.ColorFloat32.rgb(r, g, b));
 
-      // Manage compression
       int quality = 90;
       List<int> compressedBytes;
       do {
@@ -272,7 +274,6 @@ class FormPageDetailController extends GetxController {
       String fileName =
           '$formattedDate-$shiftText-$batchProduct-${mediaCount.value}.jpg';
 
-      // Save compressed image and upload
       final renamedImage = File('${image.parent.path}/$fileName')
         ..writeAsBytesSync(compressedBytes);
       mediaCount.value++;

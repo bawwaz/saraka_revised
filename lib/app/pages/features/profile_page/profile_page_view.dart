@@ -12,7 +12,7 @@ class ProfilePageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(ProfilePageController());
-    String formatDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    String formatDate = DateFormat('dd • MMMM • yyyy').format(DateTime.now());
     final storage = GetStorage();
     final String username = storage.read('username') ?? 'Unknown User';
 
